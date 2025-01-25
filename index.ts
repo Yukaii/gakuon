@@ -39,8 +39,8 @@ interface CardContent {
 const config: Config = {
   ankiHost: 'http://localhost:8765',
   openaiApiKey: process.env.OPENAI_API_KEY || '',
-  defaultDeck: 'Japanese::N3::Vocabulary',
-  audioDir: join(homedir(), '.gakuon', 'audio'),  // Updated to use gakuon
+  defaultDeck: process.env.DECK_NAME!,
+  audioDir: join(homedir(), '.gakuon', 'audio'),
   ttsVoice: 'alloy',
   language: {
     target: 'Japanese',
@@ -68,13 +68,14 @@ async function ankiRequest(action: string, params = {}) {
 // Generate content using OpenAI
 async function generateContent(cardFront: string, cardBack: string): Promise<CardContent> {
   const prompt = `Given an Anki card with:
-- Front: ${cardFront}
-- Back: ${cardBack}
+- Vocabulary: ${cardFront}
+- English: ${cardBack}
+- Example: ${cardBack}
 
 Generate:
-1. A natural example sentence using the word/phrase
-2. A simple explanation in ${config.language.target}
-3. A native explanation in ${config.language.native}
+1. A natural example sentence using the word/phrase (different from the example provided)
+2. A simple explanation in Japanese
+3. An explanation in English
 
 Format the response as a JSON object with properties: sentence, targetExplanation, nativeExplanation`;
 
@@ -103,7 +104,11 @@ async function generateAudio(text: string, filename: string): Promise<string> {
 
 // Play audio using system command
 async function playAudio(filepath: string) {
-  await Bun.spawn(['play', filepath]).exited;
+  // -nodisp: Don't show the video window
+  // -autoexit: Exit when the audio finishes
+  // -hide_banner: Don't show ffplay banner
+  // -loglevel quiet: Suppress logging output
+  await Bun.spawn(['ffplay', '-nodisp', '-autoexit', '-hide_banner', '-loglevel', 'quiet', filepath]).exited;
 }
 
 // Main review loop
@@ -125,24 +130,50 @@ async function reviewLoop() {
     console.log(`Starting review session with ${cardIds.length} cards...`);
     console.log('Controls: SPACE to play, 1-4 to rate, Q to quit, R to replay');
 
-    for (let i = 0; i < cardIds.length; i++) {
+        for (let i = 0; i < cardIds.length; i++) {
       const cardInfo = await ankiRequest('cardsInfo', { cards: [cardIds[i]] });
       const card = cardInfo[0];
 
       console.log(`\nCard ${i + 1}/${cardIds.length}`);
+      console.log(`Vocabulary: ${card.fields["Vocabulary-Kanji"].value}`);
+      console.log(`Meaning: ${card.fields["Vocabulary-English"].value}`);
 
       // Generate content
-      const content = await generateContent(card.fields.Front.value, card.fields.Back.value);
+      const content = await generateContent(
+        card.fields["Vocabulary-Kanji"].value,
+        card.fields["Vocabulary-English"].value
+      );
 
       // Generate audio files
+      console.log('\nGenerating audio files...');
       const audioFiles = await Promise.all([
         generateAudio(content.sentence, `${cardIds[i]}_sentence.mp3`),
         generateAudio(content.targetExplanation, `${cardIds[i]}_target.mp3`),
         generateAudio(content.nativeExplanation, `${cardIds[i]}_native.mp3`)
       ]);
 
+      // Display generated content
+      console.log('\nGenerated content:');
+      console.log('1. Example sentence:', content.sentence);
+      console.log('2. Japanese explanation:', content.targetExplanation);
+      console.log('3. English explanation:', content.nativeExplanation);
+
+      // Automatically play audio files first time
+      console.log('\nPlaying audio...');
+      for (const [index, audioFile] of audioFiles.entries()) {
+        const sections = ['Example sentence', 'Japanese explanation', 'English explanation'];
+        console.log(`\nPlaying ${sections[index]}...`);
+        await playAudio(audioFile);
+      }
+
       // Handle keyboard input and playback
       let playing = true;
+      console.log('\nControls:');
+      console.log('SPACE: Replay all audio');
+      console.log('R: Replay example sentence');
+      console.log('1-4: Rate card and continue');
+      console.log('Q: Quit session');
+
       while (playing) {
         const key = await new Promise(resolve => {
           process.stdin.setRawMode(true);
@@ -156,12 +187,16 @@ async function reviewLoop() {
 
         switch (key) {
           case ' ':
-            for (const audioFile of audioFiles) {
+            console.log('\nReplaying all audio...');
+            for (const [index, audioFile] of audioFiles.entries()) {
+              const sections = ['Example sentence', 'Japanese explanation', 'English explanation'];
+              console.log(`\nPlaying ${sections[index]}...`);
               await playAudio(audioFile);
             }
             break;
           case 'r':
-            await playAudio(audioFiles[0]); // Replay sentence only
+            console.log('\nReplaying example sentence...');
+            await playAudio(audioFiles[0]);
             break;
           case 'q':
             console.log('\nExiting review session...');
