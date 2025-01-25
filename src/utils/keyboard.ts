@@ -1,10 +1,6 @@
 export async function waitForKeyPress(): Promise<string> {
   return new Promise(resolve => {
-    process.stdin.setRawMode(true);
-    process.stdin.resume();
     process.stdin.once('data', data => {
-      process.stdin.setRawMode(false);
-      process.stdin.pause();
       resolve(data.toString());
     });
   });
