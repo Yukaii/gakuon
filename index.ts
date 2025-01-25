@@ -88,14 +88,29 @@ function processConfigValues(obj: any): any {
   return obj;
 }
 
+function expandTildePath(path: string): string {
+  if (path.startsWith('~/') || path === '~') {
+    return path.replace(/^~/, homedir());
+  }
+  return path;
+}
 
 function loadConfig(): GakuonConfig {
   const configPath = join(homedir(), '.gakuon', 'config.toml');
   const configFile = readFileSync(configPath, 'utf-8');
   const rawConfig = parse(configFile) as any as GakuonConfig;
 
-  // Process all config values for environment variables
-  return processConfigValues(rawConfig);
+  // Process environment variables first
+  const withEnvVars = processConfigValues(rawConfig);
+
+  // Explicitly handle paths in the config
+  return {
+    ...withEnvVars,
+    global: {
+      ...withEnvVars.global,
+      audioDir: expandTildePath(withEnvVars.global.audioDir)
+    }
+  };
 }
 
 // Find matching deck configuration
