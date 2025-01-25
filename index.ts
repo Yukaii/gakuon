@@ -292,7 +292,14 @@ async function reviewLoop() {
           case '2':
           case '3':
           case '4':
-            await ankiRequest('guiAnswerCard', { ease: parseInt(key) });
+            await ankiRequest('answerCards', {
+              answers: [
+                {
+                  cardId: card.cardId,
+                  ease: parseInt(key, 10),
+                }
+              ]
+            });
             playing = false;
             break;
         }
