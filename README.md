@@ -16,6 +16,14 @@ npm install -g gakuon
 gakuon learn
 ```
 
+## Development
+
+```bash
+bun install
+
+bun run start
+```
+
 ## Example config
 
 `~/.gakuon/config.toml`
