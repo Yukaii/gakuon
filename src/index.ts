@@ -1,4 +1,4 @@
-#!/usr/bin/env bun
+#!/usr/bin/env node
 import { Command } from 'commander';
 import { learn } from './commands/learn';
 import { BANNER } from './utils/banner';

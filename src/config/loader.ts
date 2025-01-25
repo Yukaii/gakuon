@@ -2,7 +2,7 @@ import { parse } from '@iarna/toml';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { homedir } from 'os';
-import { GakuonConfig } from './types';
+import { type GakuonConfig } from './types';
 import { expandTildePath, interpolateEnvVars } from '../utils/path';
 
 function processConfigValues(obj: any): any {
