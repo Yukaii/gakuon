@@ -1,18 +1,20 @@
 # gakuon
 
-To install dependencies:
+## Prerequisite
+
+* Setup Anki with AnkiConnect locally
+
+## Installation
 
 ```bash
-bun install
+npm install -g gakuon
 ```
 
-To run:
+## Usage
 
 ```bash
-bun run index.ts
+gakuon learn
 ```
-
-This project was created using `bun init` in bun v1.2.0. [Bun](https://bun.sh) is a fast all-in-one JavaScript runtime.
 
 ## Example config
 
@@ -21,11 +23,19 @@ This project was created using `bun init` in bun v1.2.0. [Bun](https://bun.sh) i
 ```toml
 [global]
 ankiHost = "http://localhost:8765"
+
+# Set environment variable OPENAI_API_KEY or use other key
 openaiApiKey = "${OPENAI_API_KEY}"
+# or openaiApiKey = "$OPENAI_API_KEY"
+# or openaiApiKey = "sk-proj-123123123123"
+
+# cache audio folder
 audioDir = "~/.gakuon/audio"
 ttsVoice = "alloy"
+
 defaultDeck = "Core 2k/6k Optimized Japanese Vocabulary with Sound Part 01"
 
+# TODO: no used for now
 [global.language]
 target = "Japanese"
 native = "English"
