@@ -1,9 +1,48 @@
 import { mkdir } from 'fs/promises';
 import { loadConfig, findDeckConfig } from '../config/loader';
 import { OpenAIService } from '../services/openai';
-import { AnkiService } from '../services/anki';
+import { AnkiService, type Card } from '../services/anki';
 import { playAudio } from '../services/audio';
 import { waitForKeyPress, displayControls } from '../utils/keyboard';
+import type { CardContent, DeckConfig } from '../config/types';
+
+interface AudioGeneration {
+  content: CardContent;
+  audioFiles: Promise<string>[];
+}
+
+async function generateCardAudio(
+  card: Card,
+  deckConfig: DeckConfig,
+  openaiService: OpenAIService,
+  audioDir: string,
+  ttsVoice: string
+): Promise<AudioGeneration> {
+  const content = await openaiService.generateContent(card, deckConfig);
+
+  const audioFiles = [
+    openaiService.generateAudio(
+      content.sentence,
+      `${card.cardId}_sentence.mp3`,
+      audioDir,
+      ttsVoice
+    ),
+    openaiService.generateAudio(
+      content.targetExplanation,
+      `${card.cardId}_target.mp3`,
+      audioDir,
+      ttsVoice
+    ),
+    openaiService.generateAudio(
+      content.nativeExplanation,
+      `${card.cardId}_native.mp3`,
+      audioDir,
+      ttsVoice
+    )
+  ];
+
+  return { content, audioFiles };
+}
 
 export async function learn() {
   try {
@@ -11,10 +50,8 @@ export async function learn() {
     const ankiService = new AnkiService(config.global.ankiHost);
     const openaiService = new OpenAIService(config.global.openaiApiKey);
 
-    // Ensure audio directory exists
     await mkdir(config.global.audioDir, { recursive: true });
 
-    // Get properly sorted due cards
     const dueCards = await ankiService.getDueCardsInfo(config.global.defaultDeck);
 
     if (dueCards.length === 0) {
@@ -25,36 +62,57 @@ export async function learn() {
     console.log(`Starting review session with ${dueCards.length} cards...`);
     console.log('Controls: SPACE to play, 1-4 to rate, Q to quit, R to replay');
 
-    for (const card of dueCards) {
+    // Prefetch queue for next cards
+    const prefetchQueue: AudioGeneration[] = [];
+    const MAX_PREFETCH = 2;
+
+    // Helper function to start prefetching
+    async function startPrefetch(startIdx: number) {
+      for (let i = startIdx; i < Math.min(startIdx + MAX_PREFETCH, dueCards.length); i++) {
+        const card = dueCards[i];
+        const deckConfig = findDeckConfig(card.deckName, config.decks);
+        if (deckConfig) {
+          const audioGen = generateCardAudio(
+            card,
+            deckConfig,
+            openaiService,
+            config.global.audioDir,
+            config.global.ttsVoice
+          );
+          prefetchQueue.push(await audioGen);
+        }
+      }
+    }
+
+    // Start initial prefetch
+    await startPrefetch(0);
+
+    for (let currentIdx = 0; currentIdx < dueCards.length; currentIdx++) {
+      const card = dueCards[currentIdx];
       const deckConfig = findDeckConfig(card.deckName, config.decks);
       if (!deckConfig) {
         console.error(`No configuration found for deck: ${card.deckName}`);
         continue;
       }
 
-      const content = await openaiService.generateContent(card, deckConfig);
+      // Get current card's audio (either from prefetch or generate new)
+      let currentAudio = prefetchQueue.shift();
+      if (!currentAudio) {
+        currentAudio = await generateCardAudio(
+          card,
+          deckConfig,
+          openaiService,
+          config.global.audioDir,
+          config.global.ttsVoice
+        );
+      }
 
-      console.log('\nGenerating audio files...');
-      const audioFiles = await Promise.all([
-        openaiService.generateAudio(
-          content.sentence,
-          `${card.cardId}_sentence.mp3`,
-          config.global.audioDir,
-          config.global.ttsVoice
-        ),
-        openaiService.generateAudio(
-          content.targetExplanation,
-          `${card.cardId}_target.mp3`,
-          config.global.audioDir,
-          config.global.ttsVoice
-        ),
-        openaiService.generateAudio(
-          content.nativeExplanation,
-          `${card.cardId}_native.mp3`,
-          config.global.audioDir,
-          config.global.ttsVoice
-        )
-      ]);
+      // Start prefetching next cards if queue is getting low
+      if (prefetchQueue.length < MAX_PREFETCH) {
+        startPrefetch(currentIdx + 1 + prefetchQueue.length);
+      }
+
+      const { content, audioFiles } = currentAudio;
 
       // Display generated content
       console.log('\nGenerated content:');
@@ -62,11 +120,13 @@ export async function learn() {
       console.log('2. Japanese explanation:', content.targetExplanation);
       console.log('3. English explanation:', content.nativeExplanation);
 
-      // Initial audio playback
+      // Progressive audio playback
       console.log('\nPlaying audio...');
       const sections = ['Example sentence', 'Japanese explanation', 'English explanation'];
-      for (const [index, audioFile] of audioFiles.entries()) {
-        console.log(`\nPlaying ${sections[index]}...`);
+
+      for (let i = 0; i < audioFiles.length; i++) {
+        console.log(`\nPlaying ${sections[i]}...`);
+        const audioFile = await audioFiles[i];
         await playAudio(audioFile);
       }
 
@@ -80,14 +140,16 @@ export async function learn() {
         switch (key) {
           case ' ':
             console.log('\nReplaying all audio...');
-            for (const [index, audioFile] of audioFiles.entries()) {
-              console.log(`\nPlaying ${sections[index]}...`);
+            for (let i = 0; i < audioFiles.length; i++) {
+              console.log(`\nPlaying ${sections[i]}...`);
+              const audioFile = await audioFiles[i];
               await playAudio(audioFile);
             }
             break;
           case 'r':
             console.log('\nReplaying example sentence...');
-            await playAudio(audioFiles[0]);
+            const sentenceAudio = await audioFiles[0];
+            await playAudio(sentenceAudio);
             break;
           case 'q':
             console.log('\nExiting review session...');
