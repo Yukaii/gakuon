@@ -1,6 +1,8 @@
 #!/usr/bin/env bun
 import { OpenAI } from 'openai';
+import { parse } from '@iarna/toml';
 import { mkdir, writeFile } from 'fs/promises';
+import { readFileSync } from 'fs';
 import { join } from 'path';
 import { homedir } from 'os';
 
@@ -15,18 +17,33 @@ const BANNER = `
  --------------------------------------
 `;
 
-// Types
-interface Config {
-  ankiHost: string;
-  openaiApiKey: string;
-  defaultDeck: string;
-  audioDir: string;
-  ttsVoice: string;
-  language: {
-    target: string;
-    native: string;
+interface DeckConfig {
+  name: string;
+  pattern: string;  // Regex pattern to match deck names
+  fields: {
+    front: string;
+    back: string;
+    example?: string;
+    notes?: string;
   };
+  prompt: string;
 }
+
+interface GakuonConfig {
+  global: {
+    ankiHost: string;
+    openaiApiKey: string;
+    audioDir: string;
+    ttsVoice: string;
+    language: {
+      target: string;
+      native: string;
+    };
+    defaultDeck: string;
+  };
+  decks: DeckConfig[];
+}
+
 
 interface CardContent {
   sentence: string;
@@ -34,28 +51,69 @@ interface CardContent {
   nativeExplanation: string;
 }
 
+// Helper function to interpolate environment variables
+function interpolateEnvVars(value: string): string {
+  // Match both ${VAR_NAME} and $VAR_NAME patterns
+  return value.replace(/\$\{([^}]+)\}|\$([A-Z_][A-Z0-9_]*)/g, (match, p1, p2) => {
+    const envVar = p1 || p2; // p1 is for ${VAR}, p2 is for $VAR
+    const envValue = process.env[envVar];
 
-// Configuration
-const config: Config = {
-  ankiHost: 'http://localhost:8765',
-  openaiApiKey: process.env.OPENAI_API_KEY || '',
-  defaultDeck: process.env.DECK_NAME!,
-  audioDir: join(homedir(), '.gakuon', 'audio'),
-  ttsVoice: 'alloy',
-  language: {
-    target: 'Japanese',
-    native: 'English'
+    if (!envValue) {
+      console.warn(`Warning: Environment variable ${envVar} is not set`);
+      return match; // Return original string if env var is not found
+    }
+
+    return envValue;
+  });
+}
+
+// Helper function to recursively process configuration object
+function processConfigValues(obj: any): any {
+  if (typeof obj === 'string') {
+    return interpolateEnvVars(obj);
   }
-};
+
+  if (Array.isArray(obj)) {
+    return obj.map(item => processConfigValues(item));
+  }
+
+  if (obj && typeof obj === 'object') {
+    const processed: any = {};
+    for (const [key, value] of Object.entries(obj)) {
+      processed[key] = processConfigValues(value);
+    }
+    return processed;
+  }
+
+  return obj;
+}
+
+
+function loadConfig(): GakuonConfig {
+  const configPath = join(homedir(), '.gakuon', 'config.toml');
+  const configFile = readFileSync(configPath, 'utf-8');
+  const rawConfig = parse(configFile) as any as GakuonConfig;
+
+  // Process all config values for environment variables
+  return processConfigValues(rawConfig);
+}
+
+// Find matching deck configuration
+function findDeckConfig(deckName: string, configs: DeckConfig[]): DeckConfig | undefined {
+  return configs.find(config => new RegExp(config.pattern).test(deckName));
+}
+
+// load configuration
+const config = loadConfig();
 
 // OpenAI client
 const openai = new OpenAI({
-  apiKey: config.openaiApiKey
+  apiKey: config.global.openaiApiKey
 });
 
 // AnkiConnect API wrapper
 async function ankiRequest(action: string, params = {}) {
-  const response = await fetch(config.ankiHost, {
+  const response = await fetch(config.global.ankiHost, {
     method: 'POST',
     headers: { 'Content-Type': 'application/json' },
     body: JSON.stringify({ action, version: 6, params })
@@ -66,18 +124,28 @@ async function ankiRequest(action: string, params = {}) {
 }
 
 // Generate content using OpenAI
-async function generateContent(cardFront: string, cardBack: string): Promise<CardContent> {
-  const prompt = `Given an Anki card with:
-- Vocabulary: ${cardFront}
-- English: ${cardBack}
-- Example: ${cardBack}
+async function generateContent(card: any, deckConfig: DeckConfig): Promise<CardContent> {
+  // Extract fields based on deck configuration
+  const frontContent = card.fields[deckConfig.fields.front].value;
+  const backContent = card.fields[deckConfig.fields.back].value;
+  const exampleContent = deckConfig.fields.example
+    ? card.fields[deckConfig.fields.example].value
+    : null;
+  const notesContent = deckConfig.fields.notes
+    ? card.fields[deckConfig.fields.notes].value
+    : null;
 
-Generate:
-1. A natural example sentence using the word/phrase (different from the example provided)
-2. A simple explanation in Japanese
-3. An explanation in English
+  // Replace placeholders in prompt template
+  let prompt = deckConfig.prompt
+    .replace('${front}', frontContent)
+    .replace('${back}', backContent);
 
-Format the response as a JSON object with properties: sentence, targetExplanation, nativeExplanation`;
+  if (exampleContent) {
+    prompt = prompt.replace('${example}', exampleContent);
+  }
+  if (notesContent) {
+    prompt = prompt.replace('${notes}', notesContent);
+  }
 
   const completion = await openai.chat.completions.create({
     model: "gpt-4-turbo-preview",
@@ -92,12 +160,12 @@ Format the response as a JSON object with properties: sentence, targetExplanatio
 async function generateAudio(text: string, filename: string): Promise<string> {
   const mp3 = await openai.audio.speech.create({
     model: "tts-1",
-    voice: config.ttsVoice as any,
+    voice: config.global.ttsVoice as any,
     input: text,
   });
 
   const buffer = Buffer.from(await mp3.arrayBuffer());
-  const audioPath = join(config.audioDir, filename);
+  const audioPath = join(config.global.audioDir, filename);
   await writeFile(audioPath, buffer);
   return audioPath;
 }
@@ -115,11 +183,11 @@ async function playAudio(filepath: string) {
 async function reviewLoop() {
   try {
     // Ensure audio directory exists
-    await mkdir(config.audioDir, { recursive: true });
+    await mkdir(config.global.audioDir, { recursive: true });
 
     // Get cards due for review
     const cardIds = await ankiRequest('findCards', {
-      query: `deck:"${config.defaultDeck}" is:due`
+      query: `deck:"${config.global.defaultDeck}" is:due`
     });
 
     if (cardIds.length === 0) {
@@ -134,15 +202,19 @@ async function reviewLoop() {
       const cardInfo = await ankiRequest('cardsInfo', { cards: [cardIds[i]] });
       const card = cardInfo[0];
 
+      // Find matching deck configuration
+      const deckConfig = findDeckConfig(card.deckName, config.decks);
+      if (!deckConfig) {
+        console.error(`No configuration found for deck: ${card.deckName}`);
+        continue;
+      }
+
       console.log(`\nCard ${i + 1}/${cardIds.length}`);
       console.log(`Vocabulary: ${card.fields["Vocabulary-Kanji"].value}`);
       console.log(`Meaning: ${card.fields["Vocabulary-English"].value}`);
 
       // Generate content
-      const content = await generateContent(
-        card.fields["Vocabulary-Kanji"].value,
-        card.fields["Vocabulary-English"].value
-      );
+      const content = await generateContent(card, deckConfig);
 
       // Generate audio files
       console.log('\nGenerating audio files...');
