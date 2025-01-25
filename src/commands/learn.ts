@@ -1,44 +1,36 @@
 import { mkdir } from 'fs/promises';
 import { loadConfig, findDeckConfig } from '../config/loader';
 import { OpenAIService } from '../services/openai';
-import { ankiRequest } from '../services/anki';
+import { AnkiService } from '../services/anki';
 import { playAudio } from '../services/audio';
 import { waitForKeyPress, displayControls } from '../utils/keyboard';
 
 export async function learn() {
   try {
     const config = loadConfig();
+    const ankiService = new AnkiService(config.global.ankiHost);
     const openaiService = new OpenAIService(config.global.openaiApiKey);
 
     // Ensure audio directory exists
     await mkdir(config.global.audioDir, { recursive: true });
 
-    // Get cards due for review
-    const cardIds = await ankiRequest(config.global.ankiHost, 'findCards', {
-      query: `deck:"${config.global.defaultDeck}" is:due`
-    });
+    // Get properly sorted due cards
+    const dueCards = await ankiService.getDueCardsInfo(config.global.defaultDeck);
 
-    if (cardIds.length === 0) {
+    if (dueCards.length === 0) {
       console.log('No cards due for review!');
       return;
     }
 
-    console.log(`Starting review session with ${cardIds.length} cards...`);
+    console.log(`Starting review session with ${dueCards.length} cards...`);
     console.log('Controls: SPACE to play, 1-4 to rate, Q to quit, R to replay');
 
-    for (let i = 0; i < cardIds.length; i++) {
-      const cardInfo = await ankiRequest(config.global.ankiHost, 'cardsInfo', { cards: [cardIds[i]] });
-      const card = cardInfo[0];
-
+    for (const card of dueCards) {
       const deckConfig = findDeckConfig(card.deckName, config.decks);
       if (!deckConfig) {
         console.error(`No configuration found for deck: ${card.deckName}`);
         continue;
       }
-
-      console.log(`\nCard ${i + 1}/${cardIds.length}`);
-      console.log(`Vocabulary: ${card.fields["Vocabulary-Kanji"].value}`);
-      console.log(`Meaning: ${card.fields["Vocabulary-English"].value}`);
 
       const content = await openaiService.generateContent(card, deckConfig);
 
@@ -46,19 +38,19 @@ export async function learn() {
       const audioFiles = await Promise.all([
         openaiService.generateAudio(
           content.sentence,
-          `${cardIds[i]}_sentence.mp3`,
+          `${card.cardId}_sentence.mp3`,
           config.global.audioDir,
           config.global.ttsVoice
         ),
         openaiService.generateAudio(
           content.targetExplanation,
-          `${cardIds[i]}_target.mp3`,
+          `${card.cardId}_target.mp3`,
           config.global.audioDir,
           config.global.ttsVoice
         ),
         openaiService.generateAudio(
           content.nativeExplanation,
-          `${cardIds[i]}_native.mp3`,
+          `${card.cardId}_native.mp3`,
           config.global.audioDir,
           config.global.ttsVoice
         )
@@ -104,13 +96,15 @@ export async function learn() {
           case '2':
           case '3':
           case '4':
-            await ankiRequest(config.global.ankiHost, 'answerCards', {
-              answers: [{
-                cardId: card.cardId,
-                ease: parseInt(key, 10),
-              }]
-            });
-            playing = false;
+            const success = await ankiService.answerCard(
+              card.cardId,
+              parseInt(key, 10)
+            );
+            if (success) {
+              playing = false;
+            } else {
+              console.log('Failed to answer card. Please try again.');
+            }
             break;
         }
       }
