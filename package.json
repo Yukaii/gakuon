@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@iarna/toml": "^2.2.5",
+    "commander": "^13.1.0",
     "openai": "^4.80.1"
   }
 }
