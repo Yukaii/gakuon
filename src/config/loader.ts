@@ -2,8 +2,8 @@ import { parse } from '@iarna/toml';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { homedir } from 'os';
-import { type GakuonConfig } from './types';
-import { expandTildePath, interpolateEnvVars } from '../utils/path';
+import type { GakuonConfig, DeckConfig } from './types';
+import { interpolateEnvVars } from '../utils/path';
 
 function processConfigValues(obj: any): any {
   if (typeof obj === 'string') {
@@ -36,7 +36,6 @@ export function loadConfig(): GakuonConfig {
     ...withEnvVars,
     global: {
       ...withEnvVars.global,
-      audioDir: expandTildePath(withEnvVars.global.audioDir)
     }
   };
 }

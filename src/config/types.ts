@@ -14,7 +14,6 @@ export interface GakuonConfig {
   global: {
     ankiHost: string;
     openaiApiKey: string;
-    audioDir: string;
     ttsVoice: string;
     language: {
       target: string;
