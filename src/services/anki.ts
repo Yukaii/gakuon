@@ -1,5 +1,5 @@
 import { delay } from '../utils/time';
-import { type Card, type CardContent, CardQueueType, QueueOrder, ReviewSortOrder, NewCardGatherOrder } from '../config/types'
+import { type Card, CardQueueType, QueueOrder, ReviewSortOrder, NewCardGatherOrder } from '../config/types'
 
 const GAKUON_FIELD = 'Gakuon-Meta';
 
@@ -299,11 +299,8 @@ export class AnkiService {
     return true;
   }
 
-  async updateCardMetadata(card: Card, content: CardContent, audioNames: string[]): Promise<boolean> {
-    this.debugLog('Updating card metadata');
-
+    async updateCardMetadata(card: Card, metadata: any): Promise<boolean> {
     try {
-      // Ensure model has Gakuon field
       await this.ensureGakuonField(card);
 
       let existingData = {};
@@ -317,15 +314,7 @@ export class AnkiService {
 
       const updatedData = {
         ...existingData,
-        gakuon: {
-          lastGenerated: new Date().toISOString(),
-          sentence: content.sentence,
-          targetExplanation: content.targetExplanation,
-          nativeExplanation: content.nativeExplanation,
-          audioSentence: audioNames[0],
-          audioTarget: audioNames[1],
-          audioNative: audioNames[2]
-        }
+        gakuon: metadata
       };
 
       return this.updateNoteFields(card.note, {
