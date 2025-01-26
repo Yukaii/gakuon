@@ -60,7 +60,12 @@ export async function learn(options: LearnOptions = {}) {
     await mkdir(config.global.audioDir, { recursive: true });
 
     debug('Fetching due cards from deck:', config.global.defaultDeck);
-    const dueCards = await ankiService.getDueCardsInfo(config.global.defaultDeck);
+    const dueCards = await ankiService.getDueCardsInfo(
+      config.global.defaultDeck,
+      config.global.cardOrder.queueOrder,
+      config.global.cardOrder.reviewOrder,
+      config.global.cardOrder.newCardOrder
+    );
 
     if (dueCards.length === 0) {
       console.log('No cards due for review!');

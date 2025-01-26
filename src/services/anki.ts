@@ -1,5 +1,5 @@
 import { delay } from '../utils/time';
-import type { Card, CardContent } from '../config/types'
+import { type Card, type CardContent, CardQueueType, QueueOrder, ReviewSortOrder, NewCardGatherOrder } from '../config/types'
 
 const GAKUON_FIELD = 'Gakuon-Meta';
 
@@ -66,38 +66,125 @@ export class AnkiService {
     });
   }
 
-  async getDueCardsInfo(deckName: string): Promise<Card[]> {
-    // Find all cards in the deck
+  private sortByQueueOrder(cards: Card[], order: QueueOrder): Card[] {
+    return cards.sort((a, b) => {
+      const queuePriority = (queue: number, order: QueueOrder): number => {
+        switch (order) {
+          case QueueOrder.LEARNING_REVIEW_NEW:
+            return queue === 1 ? 0 : queue === 2 ? 1 : 2;
+          case QueueOrder.REVIEW_LEARNING_NEW:
+            return queue === 2 ? 0 : queue === 1 ? 1 : 2;
+          case QueueOrder.NEW_LEARNING_REVIEW:
+            return queue === 0 ? 0 : queue === 1 ? 1 : 2;
+          case QueueOrder.MIXED:
+            return 0; // All queues equal priority
+          default:
+            return queue;
+        }
+      };
+
+      const aPriority = queuePriority(a.queue, order);
+      const bPriority = queuePriority(b.queue, order);
+
+      return aPriority - bPriority;
+    });
+  }
+
+  private sortByReviewOrder(cards: Card[], order: ReviewSortOrder): Card[] {
+    return cards.sort((a, b) => {
+      switch (order) {
+        case ReviewSortOrder.DUE_DATE_RANDOM:
+          return (a.due - b.due) || (Math.random() - 0.5);
+        case ReviewSortOrder.DUE_DATE_DECK:
+          return (a.due - b.due) || a.deckName.localeCompare(b.deckName);
+        case ReviewSortOrder.DECK_DUE_DATE:
+          return a.deckName.localeCompare(b.deckName) || (a.due - b.due);
+        case ReviewSortOrder.ASCENDING_INTERVALS:
+          return a.interval - b.interval;
+        case ReviewSortOrder.DESCENDING_INTERVALS:
+          return b.interval - a.interval;
+        case ReviewSortOrder.ASCENDING_EASE:
+          return a.factor - b.factor;
+        case ReviewSortOrder.DESCENDING_EASE:
+          return b.factor - a.factor;
+        case ReviewSortOrder.RELATIVE_OVERDUENESS:
+          const aOverdue = (Date.now() / 1000 - a.due) / a.interval;
+          const bOverdue = (Date.now() / 1000 - b.due) / b.interval;
+          return bOverdue - aOverdue;
+        default:
+          return a.due - b.due;
+      }
+    });
+  }
+
+  private sortByNewCardOrder(cards: Card[], order: NewCardGatherOrder): Card[] {
+    return cards.sort((a, b) => {
+      switch (order) {
+        case NewCardGatherOrder.DECK:
+          return a.deckName.localeCompare(b.deckName);
+        case NewCardGatherOrder.ASCENDING_POSITION:
+          return a.due - b.due;
+        case NewCardGatherOrder.DESCENDING_POSITION:
+          return b.due - a.due;
+        case NewCardGatherOrder.RANDOM_CARDS:
+          return Math.random() - 0.5;
+        case NewCardGatherOrder.RANDOM_NOTES:
+          return (a.note - b.note) || (Math.random() - 0.5);
+        case NewCardGatherOrder.DECK_RANDOM_NOTES:
+          return a.deckName.localeCompare(b.deckName) ||
+                 ((a.note - b.note) || (Math.random() - 0.5));
+        default:
+          return 0;
+      }
+    });
+  }
+
+  async getDueCardsInfo(
+    deckName: string,
+    queueOrder: QueueOrder = QueueOrder.LEARNING_REVIEW_NEW,
+    reviewOrder: ReviewSortOrder = ReviewSortOrder.DUE_DATE_RANDOM,
+    newCardOrder: NewCardGatherOrder = NewCardGatherOrder.DECK
+  ): Promise<Card[]> {
     const cardIds = await this.findCards(deckName);
     if (!cardIds?.length) return [];
 
-    // Get card information
     const cardsInfo = await this.getCardsInfo(cardIds);
     await delay(1000);
 
-    // Check which cards are due
     const cardsDue = await this.areDue(cardIds);
+    let dueCards = cardsInfo.filter((_, i) => cardsDue[i]);
 
-    // Filter due cards
-    const dueCards = cardsInfo.filter((_, i) => cardsDue[i]);
+    // Split cards by queue type
+    const newCards = dueCards.filter(c => c.queue === CardQueueType.NEW);
+    const learningCards = dueCards.filter(c => c.queue === CardQueueType.LEARNING);
+    const reviewCards = dueCards.filter(c => c.queue === CardQueueType.REVIEW);
 
-    // Sort cards by type and due date
-    return dueCards.sort((a, b) => {
-      // Learning cards (queue=1) first
-      if (a.queue === 1 && b.queue !== 1) return -1;
-      if (b.queue === 1 && a.queue !== 1) return 1;
+    // Sort each category
+    const sortedNewCards = this.sortByNewCardOrder(newCards, newCardOrder);
+    const sortedReviewCards = this.sortByReviewOrder(reviewCards, reviewOrder);
+    const sortedLearningCards = this.sortByReviewOrder(learningCards, reviewOrder);
 
-      // Then review cards (queue=2)
-      if (a.queue === 2 && b.queue !== 2) return -1;
-      if (b.queue === 2 && a.queue !== 2) return 1;
+    // Combine based on queue order
+    let result: Card[];
+    switch (queueOrder) {
+      case QueueOrder.LEARNING_REVIEW_NEW:
+        result = [...sortedLearningCards, ...sortedReviewCards, ...sortedNewCards];
+        break;
+      case QueueOrder.REVIEW_LEARNING_NEW:
+        result = [...sortedReviewCards, ...sortedLearningCards, ...sortedNewCards];
+        break;
+      case QueueOrder.NEW_LEARNING_REVIEW:
+        result = [...sortedNewCards, ...sortedLearningCards, ...sortedReviewCards];
+        break;
+      case QueueOrder.MIXED:
+        result = [...sortedLearningCards, ...sortedReviewCards, ...sortedNewCards]
+          .sort(() => Math.random() - 0.5);
+        break;
+      default:
+        result = [...sortedLearningCards, ...sortedReviewCards, ...sortedNewCards];
+    }
 
-      // Then new cards (queue=0)
-      if (a.queue === 0 && b.queue !== 0) return -1;
-      if (b.queue === 0 && a.queue !== 0) return 1;
-
-      // Within same queue type, sort by due date
-      return a.due - b.due;
-    });
+    return result;
   }
 
   async storeMediaFile(filename: string, path: string): Promise<string> {
