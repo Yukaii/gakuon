@@ -1,6 +1,6 @@
 import { AnkiService } from './anki';
 import { OpenAIService } from './openai';
-import type { Card, CardContent, DeckConfig } from '../config/types';
+import type { Card, CardContent, DeckConfig, DynamicContent } from '../config/types';
 import { tmpdir } from 'os';
 import { join } from 'path';
 import { randomBytes } from 'crypto';
@@ -32,7 +32,7 @@ export class ContentManager {
     deckConfig: DeckConfig,
     forceRegenerate = false
   ): Promise<{
-    content: CardContent;
+    content: DynamicContent;
     audioFiles: Promise<string>[];
     isNewContent: boolean;
   }> {
@@ -50,58 +50,48 @@ export class ContentManager {
   private async getExistingContent(card: Card) {
     const metadata = await this.ankiService.getCardMetadata(card);
 
-    const content: CardContent = {
-      sentence: metadata.sentence,
-      targetExplanation: metadata.targetExplanation,
-      nativeExplanation: metadata.nativeExplanation
-    };
+    // Get stored content
+    const content = metadata.content || {};
 
-    // These are the stored [sound:filename] references
-    const audioFiles = [
-      Promise.resolve(metadata.audioSentence),
-      Promise.resolve(metadata.audioTarget),
-      Promise.resolve(metadata.audioNative)
-    ];
+    // Get audio references
+    const audioFiles = Object.entries(metadata.audio || {})
+      .map(([_, reference]) => Promise.resolve(reference as string));
 
     return { content, audioFiles, isNewContent: false };
   }
 
-  private async generateAndStoreContent(card: Card, deckConfig: DeckConfig) {
+    private async generateAndStoreContent(card: Card, deckConfig: DeckConfig) {
     // Generate content
     const content = await this.openaiService.generateContent(card, deckConfig);
 
-    // Generate audio files in temp directory
-    const audioPromises = [
-      this.openaiService.generateAudio(
-        content.sentence,
-        this.generateTempFilename(card.cardId, 'sentence'),
-        'alloy'
-      ),
-      this.openaiService.generateAudio(
-        content.targetExplanation,
-        this.generateTempFilename(card.cardId, 'target'),
-        'alloy'
-      ),
-      this.openaiService.generateAudio(
-        content.nativeExplanation,
-        this.generateTempFilename(card.cardId, 'native'),
-        'alloy'
-      )
-    ];
+    // Generate audio for fields that need it
+    const audioPromises: Promise<string>[] = [];
+    const audioMap: Record<string, string> = {};
 
-    // Wait for audio generation and store in Anki
-    const audioFiles = await Promise.all(audioPromises);
-    const audioNames = await Promise.all(
-      audioFiles.map(async (filepath, index) => {
-        const filename = `gakuon_${card.cardId}_${index}.mp3`;
-        this.debugLog('Storing audio file in Anki:', filename);
-        await this.ankiService.storeMediaFile(filename, filepath);
-        return `[sound:${filename}]`;
-      })
-    );
+    for (const [field, fieldConfig] of Object.entries(deckConfig.responseFields)) {
+      if (fieldConfig.audio && content[field]) {
+        const tempPath = this.generateTempFilename(card.cardId, field);
+        const audioPromise = this.openaiService.generateAudio(
+          content[field],
+          tempPath,
+          'alloy'
+        );
+        audioPromises.push(audioPromise);
 
-    // Store metadata in card's comment/notes field
-    await this.ankiService.updateCardMetadata(card, content, audioNames);
+        // Store in Anki and get reference
+        const audioFile = await audioPromise;
+        const filename = `gakuon_${card.cardId}_${field}.mp3`;
+        await this.ankiService.storeMediaFile(filename, audioFile);
+        audioMap[field] = `[sound:${filename}]`;
+      }
+    }
+
+    // Store metadata
+    await this.ankiService.updateCardMetadata(card, {
+      lastGenerated: new Date().toISOString(),
+      content,
+      audio: audioMap
+    });
 
     return {
       content,

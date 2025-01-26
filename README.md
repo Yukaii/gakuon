@@ -78,22 +78,33 @@ native = "English"
 [[decks]]
 name = "Core 2k/6k Japanese"
 pattern = "Core 2k/6k.*Japanese"
-fields.front = "Vocabulary-Kanji"
-fields.back = "Vocabulary-English"
-fields.example = "Expression"
-fields.notes = "Notes"
+fields.word = "Vocabulary-Kanji"
+fields.meaning = "Vocabulary-English"
+fields.context = "Expression"
+
 prompt = """
 Given a Japanese vocabulary card:
-- Word: ${front}
-- Meaning: ${back}
-- Example: ${example}
-- Notes: ${notes}
+- Word: ${word}
+- Meaning: ${meaning}
+- Context: ${context}
 
-Generate:
-1. A natural example sentence using the word (different from the example provided)
-2. A simple explanation in Japanese
-3. An explanation in English
-
-Format the response as a JSON object with properties: sentence, targetExplanation, nativeExplanation
+Generate helpful learning content.
 """
+
+[decks.responseFields]
+example.description = "A natural example sentence using the word"
+example.required = true
+example.audio = true
+
+explanation_jp.description = "Simple explanation in Japanese"
+explanation_jp.required = true
+explanation_jp.audio = true
+
+explanation_en.description = "Detailed explanation in English"
+explanation_en.required = true
+explanation_en.audio = true
+
+usage_notes.description = "Additional usage notes"
+usage_notes.required = false
+usage_notes.audio = false
 ```

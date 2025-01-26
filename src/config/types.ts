@@ -1,13 +1,50 @@
+export interface ResponseField {
+  description: string;
+  required: boolean;
+  audio?: boolean;  // Whether this field should be converted to audio
+}
+
 export interface DeckConfig {
   name: string;
   pattern: string;
-  fields: {
-    front: string;
-    back: string;
-    example?: string;
-    notes?: string;
-  };
+  fields: Record<string, string>;  // Input fields mapping
   prompt: string;
+  responseFields: Record<string, ResponseField>;  // Output fields configuration
+}
+
+// Remove CardContent interface as it will be dynamic
+export type DynamicContent = Record<string, string>;
+
+// Default response format if not specified in config
+export const DEFAULT_RESPONSE_FORMAT = {
+  fields: {
+    sentence: {
+      description: "A natural example sentence",
+      required: true
+    },
+    targetExplanation: {
+      description: "Explanation in target language",
+      required: true
+    },
+    nativeExplanation: {
+      description: "Explanation in native language",
+      required: true
+    }
+  }
+};
+
+export class PromptError extends Error {
+  constructor(
+    message: string,
+    public details: {
+      missingFields?: string[];
+      invalidFields?: string[];
+      configIssues?: string[];
+    }
+  ) {
+    super(message);
+    this.name = 'PromptError';
+  }
 }
 
 export interface GakuonConfig {
