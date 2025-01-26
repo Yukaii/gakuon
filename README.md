@@ -70,11 +70,6 @@ queueOrder = "learning_review_new"
 reviewOrder = "due_date_random"
 newCardOrder = "deck"
 
-# TODO: no used for now
-[global.language]
-target = "Japanese"
-native = "English"
-
 [[decks]]
 name = "Core 2k/6k Japanese"
 pattern = "Core 2k/6k.*Japanese"
