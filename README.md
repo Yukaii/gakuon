@@ -20,6 +20,10 @@ Perfect for:
 > [!WARNING]
 > This program would add extra fields to your card type! Understand what you're doing
 
+
+> [!NOTE]
+> Project status: Alpha, with a working CLI program
+
 ## Prerequisite
 
 * Setup Anki with AnkiConnect locally
