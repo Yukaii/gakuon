@@ -336,4 +336,16 @@ export class AnkiService {
       return false;
     }
   }
+
+  async retrieveMediaFile(filename: string): Promise<string | null> {
+    try {
+      const result = await this.request<string>('retrieveMediaFile', {
+        filename
+      });
+      return result;
+    } catch (error) {
+      console.error('Error retrieving media file:', error);
+      return null;
+    }
+  }
 }

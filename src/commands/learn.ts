@@ -41,7 +41,6 @@ interface LearnOptions {
 
 export async function learn(options: LearnOptions = {}) {
   const debug = createDebugLogger(options.debug || false);
-  const audioPlayer = new AudioPlayer();
   const keyboard = new KeyboardHandler();
 
   try {
@@ -52,6 +51,7 @@ export async function learn(options: LearnOptions = {}) {
     const ankiService = new AnkiService(config.global.ankiHost, options.debug);
     const openaiService = new OpenAIService(config.global.openaiApiKey);
     const contentManager = new ContentManager(ankiService, openaiService, config.global.audioDir);
+    const audioPlayer = new AudioPlayer(ankiService, options.debug);
 
     debug('Starting keyboard handler');
     keyboard.start();
@@ -170,6 +170,7 @@ export async function learn(options: LearnOptions = {}) {
           if (!isCardComplete) {
             debug('Playing section:', sections[index]);
             console.log(`\nPlaying ${sections[index]}...`);
+            debug(`audio file ${audioFile}`)
             await audioPlayer.play(audioFile);
           }
         }
