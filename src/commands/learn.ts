@@ -7,6 +7,7 @@ import { KeyAction, KeyboardHandler } from '../utils/keyboard';
 import type { CardContent, DeckConfig, Card } from '../config/types';
 import { ContentManager } from '../services/content-manager';
 
+
 interface AudioGeneration {
   content: CardContent;
   audioFiles: Promise<string>[];
