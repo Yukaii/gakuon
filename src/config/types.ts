@@ -15,24 +15,6 @@ export interface DeckConfig {
 // Remove CardContent interface as it will be dynamic
 export type DynamicContent = Record<string, string>;
 
-// Default response format if not specified in config
-export const DEFAULT_RESPONSE_FORMAT = {
-  fields: {
-    sentence: {
-      description: "A natural example sentence",
-      required: true
-    },
-    targetExplanation: {
-      description: "Explanation in target language",
-      required: true
-    },
-    nativeExplanation: {
-      description: "Explanation in native language",
-      required: true
-    }
-  }
-};
-
 export class PromptError extends Error {
   constructor(
     message: string,
@@ -64,12 +46,6 @@ export interface GakuonConfig {
     };
   };
   decks: DeckConfig[];
-}
-
-export interface CardContent {
-  sentence: string;
-  targetExplanation: string;
-  nativeExplanation: string;
 }
 
 export interface Card {

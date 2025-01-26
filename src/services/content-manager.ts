@@ -1,6 +1,6 @@
 import { AnkiService } from './anki';
 import { OpenAIService } from './openai';
-import type { Card, CardContent, DeckConfig, DynamicContent } from '../config/types';
+import type { Card, DeckConfig, DynamicContent } from '../config/types';
 import { tmpdir } from 'os';
 import { join } from 'path';
 import { randomBytes } from 'crypto';

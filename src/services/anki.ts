@@ -1,5 +1,5 @@
 import { delay } from '../utils/time';
-import { type Card, type CardContent, CardQueueType, QueueOrder, ReviewSortOrder, NewCardGatherOrder } from '../config/types'
+import { type Card, CardQueueType, QueueOrder, ReviewSortOrder, NewCardGatherOrder } from '../config/types'
 
 const GAKUON_FIELD = 'Gakuon-Meta';
 
