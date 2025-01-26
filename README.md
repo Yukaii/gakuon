@@ -47,6 +47,11 @@ ttsVoice = "alloy"
 
 defaultDeck = "Core 2k/6k Optimized Japanese Vocabulary with Sound Part 01"
 
+[global.cardOrder]
+queueOrder = "learning_review_new"
+reviewOrder = "due_date_random"
+newCardOrder = "deck"
+
 # TODO: no used for now
 [global.language]
 target = "Japanese"
