@@ -1,47 +1,30 @@
 import { mkdir } from 'fs/promises';
 import { loadConfig, findDeckConfig } from '../config/loader';
 import { OpenAIService } from '../services/openai';
-import { AnkiService, type Card } from '../services/anki';
+import { AnkiService } from '../services/anki';
 import { AudioPlayer } from '../services/audio';
 import { KeyAction, KeyboardHandler } from '../utils/keyboard';
-import type { CardContent, DeckConfig } from '../config/types';
+import type { CardContent, DeckConfig, Card } from '../config/types';
+import { ContentManager } from '../services/content-manager';
 
 interface AudioGeneration {
   content: CardContent;
   audioFiles: Promise<string>[];
+  isNewContent?: boolean;
 }
 
-async function generateCardAudio(
+async function getCardContent(
   card: Card,
   deckConfig: DeckConfig,
-  openaiService: OpenAIService,
-  audioDir: string,
-  ttsVoice: string
+  contentManager: ContentManager,
+  forceRegenerate = false
 ): Promise<AudioGeneration> {
-  const content = await openaiService.generateContent(card, deckConfig);
-
-  const audioFiles = [
-    openaiService.generateAudio(
-      content.sentence,
-      `${card.cardId}_sentence.mp3`,
-      audioDir,
-      ttsVoice
-    ),
-    openaiService.generateAudio(
-      content.targetExplanation,
-      `${card.cardId}_target.mp3`,
-      audioDir,
-      ttsVoice
-    ),
-    openaiService.generateAudio(
-      content.nativeExplanation,
-      `${card.cardId}_native.mp3`,
-      audioDir,
-      ttsVoice
-    )
-  ];
-
-  return { content, audioFiles };
+  const { content, audioFiles, isNewContent } = await contentManager.getOrGenerateContent(
+    card,
+    deckConfig,
+    forceRegenerate
+  );
+  return { content, audioFiles, isNewContent };
 }
 
 export async function learn() {
@@ -52,6 +35,7 @@ export async function learn() {
     const config = loadConfig();
     const ankiService = new AnkiService(config.global.ankiHost);
     const openaiService = new OpenAIService(config.global.openaiApiKey);
+    const contentManager = new ContentManager(ankiService, openaiService, config.global.audioDir);
 
     keyboard.start();
 
@@ -65,7 +49,6 @@ export async function learn() {
     }
 
     console.log(`Starting review session with ${dueCards.length} cards...`);
-    console.log('Controls: SPACE to play, 1-4 to rate, Q to quit, R to replay');
 
     // Prefetch queue for next cards
     const prefetchQueue: AudioGeneration[] = [];
@@ -77,13 +60,7 @@ export async function learn() {
         const card = dueCards[i];
         const deckConfig = findDeckConfig(card.deckName, config.decks);
         if (deckConfig) {
-          const audioGen = generateCardAudio(
-            card,
-            deckConfig,
-            openaiService,
-            config.global.audioDir,
-            config.global.ttsVoice
-          );
+          const audioGen = getCardContent(card, deckConfig, contentManager);
           prefetchQueue.push(await audioGen);
         }
       }
@@ -103,13 +80,7 @@ export async function learn() {
       // Get current card's audio (either from prefetch or generate new)
       let currentAudio = prefetchQueue.shift();
       if (!currentAudio) {
-        currentAudio = await generateCardAudio(
-          card,
-          deckConfig,
-          openaiService,
-          config.global.audioDir,
-          config.global.ttsVoice
-        );
+        currentAudio = await getCardContent(card, deckConfig, contentManager);
       }
 
       // Start prefetching next cards if queue is getting low
@@ -117,7 +88,7 @@ export async function learn() {
         startPrefetch(currentIdx + 1 + prefetchQueue.length);
       }
 
-      const { content, audioFiles } = currentAudio;
+      const { content, audioFiles, isNewContent } = currentAudio;
       let isCardComplete = false;
 
       console.clear();
@@ -126,6 +97,9 @@ export async function learn() {
       console.log('1. Example sentence:', content.sentence);
       console.log('2. Japanese explanation:', content.targetExplanation);
       console.log('3. English explanation:', content.nativeExplanation);
+      if (!isNewContent) {
+        console.log('\n(Using cached content. Press G to regenerate)');
+      }
       keyboard.displayControls();
 
       // Progressive audio playback
@@ -173,6 +147,32 @@ export async function learn() {
         audioPlayer.stop();
         keyboard.stop();
         process.exit(0);
+      });
+
+      keyboard.on(KeyAction.REGENERATE, async () => {
+        if (!isCardComplete) {
+          console.log('\nRegenerating content...');
+          const newAudio = await getCardContent(card, deckConfig, contentManager, true);
+          currentAudio = newAudio;
+
+          // Update display
+          console.clear();
+          console.log(`Card ${currentIdx + 1}/${dueCards.length}`);
+          console.log('\nNewly Generated content:');
+          console.log('1. Example sentence:', newAudio.content.sentence);
+          console.log('2. Japanese explanation:', newAudio.content.targetExplanation);
+          console.log('3. English explanation:', newAudio.content.nativeExplanation);
+          keyboard.displayControls();
+
+          // Play new audio
+          const newResolvedAudioFiles = await Promise.all(newAudio.audioFiles);
+          for (const [index, audioFile] of newResolvedAudioFiles.entries()) {
+            if (!isCardComplete) {
+              console.log(`\nPlaying ${sections[index]}...`);
+              await audioPlayer.play(audioFile);
+            }
+          }
+        }
       });
 
       const rateCard = async (ease: number) => {

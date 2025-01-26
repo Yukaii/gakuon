@@ -30,3 +30,17 @@ export interface CardContent {
   targetExplanation: string;
   nativeExplanation: string;
 }
+
+export interface Card {
+  cardId: number;
+  deckName: string;
+  modelName: string;
+  fields: Record<string, { value: string; order: number }>;
+  queue: number;  // 0=new, 1=learning, 2=review
+  due: number;
+  interval: number;
+  factor: number;
+  reps: number;
+  lapses: number;
+  note: number;
+}

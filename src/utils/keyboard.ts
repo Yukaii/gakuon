@@ -11,6 +11,7 @@ export enum KeyAction {
   RATE_2 = 'RATE_2',
   RATE_3 = 'RATE_3',
   RATE_4 = 'RATE_4',
+  REGENERATE = 'REGENERATE',
 }
 
 export class KeyboardHandler extends EventEmitter {
@@ -22,7 +23,7 @@ export class KeyboardHandler extends EventEmitter {
   }
 
   private handleKeyPress(data: Buffer): void {
-    const key = data.toString();
+    const key = data.toString().toLowerCase();
 
     switch (key) {
       case ' ':
@@ -42,6 +43,9 @@ export class KeyboardHandler extends EventEmitter {
         break;
       case 'q':
         this.emit(KeyAction.QUIT);
+        break;
+      case 'g':
+        this.emit(KeyAction.REGENERATE);
         break;
       case '1':
         this.emit(KeyAction.RATE_1);
@@ -85,5 +89,6 @@ export class KeyboardHandler extends EventEmitter {
     console.log('P: Previous card');
     console.log('1-4: Rate card');
     console.log('Q: Quit session');
+    console.log('G: Regenerate content');
   }
 }
