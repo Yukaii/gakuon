@@ -15,6 +15,7 @@ program
 program
   .command('learn')
   .description('Start an audio-based learning session')
+  .option('-d, --debug', 'Enable debug mode')
   .action(learn);
 
 program.parse();

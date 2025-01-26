@@ -1,5 +1,8 @@
 # gakuon
 
+> [!WARNING]
+> This program would add extra fields to your card type! Understand what you're doing
+
 ## Prerequisite
 
 * Setup Anki with AnkiConnect locally
