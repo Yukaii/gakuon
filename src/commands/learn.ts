@@ -27,13 +27,17 @@ async function getCardContent(
   return { content, audioFiles, isNewContent };
 }
 
-export async function learn() {
+interface LearnOptions {
+  debug?: boolean;
+}
+
+export async function learn(options: LearnOptions = {}) {
   const audioPlayer = new AudioPlayer();
   const keyboard = new KeyboardHandler();
 
   try {
     const config = loadConfig();
-    const ankiService = new AnkiService(config.global.ankiHost);
+    const ankiService = new AnkiService(config.global.ankiHost, options.debug);
     const openaiService = new OpenAIService(config.global.openaiApiKey);
     const contentManager = new ContentManager(ankiService, openaiService, config.global.audioDir);
 
@@ -91,7 +95,10 @@ export async function learn() {
       const { content, audioFiles, isNewContent } = currentAudio;
       let isCardComplete = false;
 
-      console.clear();
+      if (!options.debug) {
+        console.clear();
+      }
+
       console.log(`Card ${currentIdx + 1}/${dueCards.length}`);
       console.log('\nGenerated content:');
       console.log('1. Example sentence:', content.sentence);
@@ -101,6 +108,10 @@ export async function learn() {
         console.log('\n(Using cached content. Press G to regenerate)');
       }
       keyboard.displayControls();
+
+      if (options.debug) {
+        console.log(card.cardId, 'cardId')
+      }
 
       // Progressive audio playback
       console.log('\nPlaying audio...');
