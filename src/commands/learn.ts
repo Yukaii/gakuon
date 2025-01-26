@@ -62,6 +62,10 @@ export async function learn(options: LearnOptions = {}) {
     debug('Starting keyboard handler');
     keyboard.start();
 
+    if (!config.global.defaultDeck) {
+      throw new Error('defaultDeck is required')
+    }
+
     debug('Fetching due cards from deck:', config.global.defaultDeck);
     const dueCards = await ankiService.getDueCardsInfo(
       config.global.defaultDeck,

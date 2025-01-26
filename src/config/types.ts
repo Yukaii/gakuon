@@ -34,11 +34,7 @@ export interface GakuonConfig {
     ankiHost: string;
     openaiApiKey: string;
     ttsVoice: string;
-    language: {
-      target: string;
-      native: string;
-    };
-    defaultDeck: string;
+    defaultDeck?: string;
     cardOrder: {
       queueOrder: QueueOrder;
       reviewOrder: ReviewSortOrder;
