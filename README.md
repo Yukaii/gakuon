@@ -3,6 +3,7 @@
 ## Prerequisite
 
 * Setup Anki with AnkiConnect locally
+* ffplayer (installed along with ffmpeg)
 
 ## Installation
 
