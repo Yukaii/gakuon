@@ -1,13 +1,31 @@
 import { AnkiService } from './anki';
 import { OpenAIService } from './openai';
 import type { Card, CardContent, DeckConfig } from '../config/types';
+import { tmpdir } from 'os';
+import { join } from 'path';
+import { randomBytes } from 'crypto';
 
 export class ContentManager {
+  private tmpDir = tmpdir()
+
   constructor(
     private ankiService: AnkiService,
     private openaiService: OpenAIService,
-    private audioDir: string
-  ) {}
+    private debug = false
+  ) {
+    this.debugLog('Using tmpDir',this.tmpDir)
+  }
+
+  private debugLog(...args: any[]) {
+    if (this.debug) {
+      console.log('[ContentManager]', ...args);
+    }
+  }
+
+  private generateTempFilename(cardId: number, type: string): string {
+    const random = randomBytes(4).toString('hex');
+    return join(this.tmpDir, `gakuon_${cardId}_${type}_${random}.mp3`);
+  }
 
   async getOrGenerateContent(
     card: Card,
@@ -20,10 +38,12 @@ export class ContentManager {
   }> {
     // Check for existing content
     if (!forceRegenerate && await this.ankiService.hasGeneratedContent(card)) {
+      this.debugLog('Using existing content for card:', card.cardId);
       return this.getExistingContent(card);
     }
 
     // Generate new content
+    this.debugLog('Generating new content for card:', card.cardId);
     return this.generateAndStoreContent(card, deckConfig);
   }
 
@@ -50,24 +70,21 @@ export class ContentManager {
     // Generate content
     const content = await this.openaiService.generateContent(card, deckConfig);
 
-    // Generate audio files
+    // Generate audio files in temp directory
     const audioPromises = [
       this.openaiService.generateAudio(
         content.sentence,
-        `${card.cardId}_sentence.mp3`,
-        this.audioDir,
+        this.generateTempFilename(card.cardId, 'sentence'),
         'alloy'
       ),
       this.openaiService.generateAudio(
         content.targetExplanation,
-        `${card.cardId}_target.mp3`,
-        this.audioDir,
+        this.generateTempFilename(card.cardId, 'target'),
         'alloy'
       ),
       this.openaiService.generateAudio(
         content.nativeExplanation,
-        `${card.cardId}_native.mp3`,
-        this.audioDir,
+        this.generateTempFilename(card.cardId, 'native'),
         'alloy'
       )
     ];
@@ -77,6 +94,7 @@ export class ContentManager {
     const audioNames = await Promise.all(
       audioFiles.map(async (filepath, index) => {
         const filename = `gakuon_${card.cardId}_${index}.mp3`;
+        this.debugLog('Storing audio file in Anki:', filename);
         await this.ankiService.storeMediaFile(filename, filepath);
         return `[sound:${filename}]`;
       })

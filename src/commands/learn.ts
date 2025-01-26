@@ -42,7 +42,6 @@ interface LearnOptions {
 
 export async function learn(options: LearnOptions = {}) {
   const debug = createDebugLogger(options.debug || false);
-  const audioPlayer = new AudioPlayer();
   const keyboard = new KeyboardHandler();
 
   try {
@@ -52,13 +51,11 @@ export async function learn(options: LearnOptions = {}) {
     debug('Initializing services...');
     const ankiService = new AnkiService(config.global.ankiHost, options.debug);
     const openaiService = new OpenAIService(config.global.openaiApiKey);
-    const contentManager = new ContentManager(ankiService, openaiService, config.global.audioDir);
+    const contentManager = new ContentManager(ankiService, openaiService);
+    const audioPlayer = new AudioPlayer(ankiService, options.debug);
 
     debug('Starting keyboard handler');
     keyboard.start();
-
-    debug('Ensuring audio directory exists:', config.global.audioDir);
-    await mkdir(config.global.audioDir, { recursive: true });
 
     debug('Fetching due cards from deck:', config.global.defaultDeck);
     const dueCards = await ankiService.getDueCardsInfo(
@@ -171,6 +168,7 @@ export async function learn(options: LearnOptions = {}) {
           if (!isCardComplete) {
             debug('Playing section:', sections[index]);
             console.log(`\nPlaying ${sections[index]}...`);
+            debug(`audio file ${audioFile}`)
             await audioPlayer.play(audioFile);
           }
         }

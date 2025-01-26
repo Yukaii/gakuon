@@ -40,9 +40,6 @@ ankiHost = "http://localhost:8765"
 openaiApiKey = "${OPENAI_API_KEY}"
 # or openaiApiKey = "$OPENAI_API_KEY"
 # or openaiApiKey = "sk-proj-123123123123"
-
-# cache audio folder
-audioDir = "~/.gakuon/audio"
 ttsVoice = "alloy"
 
 defaultDeck = "Core 2k/6k Optimized Japanese Vocabulary with Sound Part 01"

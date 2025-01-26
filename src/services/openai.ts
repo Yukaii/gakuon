@@ -40,7 +40,11 @@ export class OpenAIService {
     return JSON.parse(completion.choices[0].message.content!) as CardContent;
   }
 
-  async generateAudio(text: string, filename: string, audioDir: string, voice: string): Promise<string> {
+  async generateAudio(
+    text: string,
+    outputPath: string,
+    voice: string
+  ): Promise<string> {
     const mp3 = await this.client.audio.speech.create({
       model: "tts-1",
       voice: voice as any,
@@ -48,8 +52,7 @@ export class OpenAIService {
     });
 
     const buffer = Buffer.from(await mp3.arrayBuffer());
-    const audioPath = join(audioDir, filename);
-    await writeFile(audioPath, buffer);
-    return audioPath;
+    await writeFile(outputPath, buffer);
+    return outputPath;
   }
 }
