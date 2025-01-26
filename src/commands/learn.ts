@@ -48,8 +48,8 @@ export async function learn(options: LearnOptions = {}) {
 
   debug('Initializing services...');
   const ankiService = new AnkiService(config.global.ankiHost, options.debug);
-  const openaiService = new OpenAIService(config.global.openaiApiKey);
-  const contentManager = new ContentManager(ankiService, openaiService);
+  const openaiService = new OpenAIService(config.global.openaiApiKey, options.debug);
+  const contentManager = new ContentManager(ankiService, openaiService, options.debug);
   const audioPlayer = new AudioPlayer(ankiService, options.debug);
 
   try {

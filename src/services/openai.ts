@@ -1,6 +1,6 @@
 import OpenAI from 'openai';
 import { writeFile } from 'fs/promises';
-import { type DeckConfig, type CardContent, type Card, PromptError, DEFAULT_RESPONSE_FORMAT, type DynamicContent } from '../config/types';
+import { type DeckConfig, type Card, PromptError, type DynamicContent } from '../config/types';
 
 export class OpenAIService {
   private client: OpenAI;
@@ -77,6 +77,7 @@ ${Object.entries(deckConfig.responseFields)
       const processedPrompt = this.replaceFieldReferences(deckConfig.prompt, card, deckConfig);
 
       const fullPrompt = `${processedPrompt}\n\n${this.generateResponseFormat(deckConfig)}`;
+      this.debugLog(fullPrompt)
 
       const completion = await this.client.chat.completions.create({
         model: "gpt-4-turbo-preview",
