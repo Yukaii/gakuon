@@ -19,19 +19,23 @@ const DEFAULT_CONFIG: GakuonConfig = {
   decks: []
 };
 
-function processConfigValues(obj: any): any {
+// Define allowed keys for environment variable interpolation
+const ALLOWED_ENV_KEYS = new Set(['global.openaiApiKey']);
+
+function processConfigValues(obj: any, path: string[] = []): any {
   if (typeof obj === 'string') {
-    return interpolateEnvVars(obj);
+    const fullPath = path.join('.');
+    return ALLOWED_ENV_KEYS.has(fullPath) ? interpolateEnvVars(obj) : obj;
   }
 
   if (Array.isArray(obj)) {
-    return obj.map(item => processConfigValues(item));
+    return obj.map((item, index) => processConfigValues(item, [...path, index.toString()]));
   }
 
   if (obj && typeof obj === 'object') {
     const processed: any = {};
     for (const [key, value] of Object.entries(obj)) {
-      processed[key] = processConfigValues(value);
+      processed[key] = processConfigValues(value, [...path, key]);
     }
     return processed;
   }
@@ -46,7 +50,6 @@ export function loadConfig(): GakuonConfig {
     saveConfig(DEFAULT_CONFIG)
   }
 
-
   const configFile = readFileSync(configPath, 'utf-8');
   const rawConfig = parse(configFile) as any as GakuonConfig;
 
@@ -60,24 +63,29 @@ export function loadConfig(): GakuonConfig {
   };
 }
 
+// Rest of deck-related functions remain unchanged
 export function findDeckConfig(deckName: string, configs: DeckConfig[]): DeckConfig | undefined {
   return configs.find(config => new RegExp(config.pattern).test(deckName));
 }
 
-function reverseProcessConfigValues(obj: any): any {
-  if (typeof obj === 'string' && obj.includes(process.env.OPENAI_API_KEY || '')) {
-    // Replace API key with environment variable reference
-    return '${OPENAI_API_KEY}';
+function reverseProcessConfigValues(obj: any, path: string[] = []): any {
+  if (typeof obj === 'string') {
+    const fullPath = path.join('.');
+    if (ALLOWED_ENV_KEYS.has(fullPath)) {
+      const envValue = process.env.OPENAI_API_KEY;
+      return obj === envValue ? '${OPENAI_API_KEY}' : obj;
+    }
+    return obj;
   }
 
   if (Array.isArray(obj)) {
-    return obj.map(item => reverseProcessConfigValues(item));
+    return obj.map((item, index) => reverseProcessConfigValues(item, [...path, index.toString()]));
   }
 
   if (obj && typeof obj === 'object') {
     const processed: any = {};
     for (const [key, value] of Object.entries(obj)) {
-      processed[key] = reverseProcessConfigValues(value);
+      processed[key] = reverseProcessConfigValues(value, [...path, key]);
     }
     return processed;
   }
@@ -85,31 +93,26 @@ function reverseProcessConfigValues(obj: any): any {
   return obj;
 }
 
+// Rest of config saving and backup functions remain unchanged
 export async function saveConfig(config: GakuonConfig): Promise<void> {
   const configPath = join(homedir(), '.gakuon', 'config.toml');
 
   try {
-    // Reverse process config values to store environment variables as references
     const processedConfig = reverseProcessConfigValues(config);
-
-    // Convert config to TOML
     const tomlContent = stringify(processedConfig);
 
-    // Add header comment
     const configWithHeader = `# Gakuon Configuration File
 # Generated on ${new Date().toISOString()}
 # Do not edit while Anki is running
 
 ${tomlContent}`;
 
-    // Write to file
     writeFileSync(configPath, configWithHeader, 'utf-8');
   } catch (error) {
     throw new Error(`Failed to save configuration: ${error}`);
   }
 }
 
-// Optional: Add backup functionality
 export async function backupConfig(): Promise<string> {
   const configPath = join(homedir(), '.gakuon', 'config.toml');
   const backupPath = join(homedir(), '.gakuon', `config.backup.${Date.now()}.toml`);
@@ -123,13 +126,9 @@ export async function backupConfig(): Promise<string> {
   }
 }
 
-// Usage in init command:
 export async function saveConfigSafely(config: GakuonConfig): Promise<void> {
   try {
-    // Create backup first
     await backupConfig();
-
-    // Save new config
     await saveConfig(config);
   } catch (error) {
     throw new Error(`Failed to save configuration safely: ${error}`);
