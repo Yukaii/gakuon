@@ -66,30 +66,6 @@ export class AnkiService {
     });
   }
 
-  private sortByQueueOrder(cards: Card[], order: QueueOrder): Card[] {
-    return cards.sort((a, b) => {
-      const queuePriority = (queue: number, order: QueueOrder): number => {
-        switch (order) {
-          case QueueOrder.LEARNING_REVIEW_NEW:
-            return queue === 1 ? 0 : queue === 2 ? 1 : 2;
-          case QueueOrder.REVIEW_LEARNING_NEW:
-            return queue === 2 ? 0 : queue === 1 ? 1 : 2;
-          case QueueOrder.NEW_LEARNING_REVIEW:
-            return queue === 0 ? 0 : queue === 1 ? 1 : 2;
-          case QueueOrder.MIXED:
-            return 0; // All queues equal priority
-          default:
-            return queue;
-        }
-      };
-
-      const aPriority = queuePriority(a.queue, order);
-      const bPriority = queuePriority(b.queue, order);
-
-      return aPriority - bPriority;
-    });
-  }
-
   private sortByReviewOrder(cards: Card[], order: ReviewSortOrder): Card[] {
     return cards.sort((a, b) => {
       switch (order) {
@@ -336,5 +312,9 @@ export class AnkiService {
       console.error('Error retrieving media file:', error);
       return null;
     }
+  }
+
+  async getDeckNames (): Promise<string[]> {
+    return this.request<string[]>('deckNames')
   }
 }

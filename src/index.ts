@@ -1,6 +1,7 @@
 #!/usr/bin/env node
 import { Command } from 'commander';
 import { learn } from './commands/learn';
+import { init } from './commands/init';
 import { BANNER } from './utils/banner';
 
 const program = new Command();
@@ -17,5 +18,11 @@ program
   .description('Start an audio-based learning session')
   .option('-d, --debug', 'Enable debug mode')
   .action(learn);
+
+program
+  .command('init')
+  .description('Initialize deck configuration interactively')
+  .option('-d, --debug', 'Enable debug mode')
+  .action(init);
 
 program.parse();

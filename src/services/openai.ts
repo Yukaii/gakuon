@@ -3,7 +3,7 @@ import { writeFile } from 'fs/promises';
 import { type DeckConfig, type Card, PromptError, type DynamicContent } from '../config/types';
 
 export class OpenAIService {
-  private client: OpenAI;
+  public client: OpenAI;
 
   constructor(
     private apiKey: string,
