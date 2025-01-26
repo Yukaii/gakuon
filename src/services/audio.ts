@@ -1,15 +1,15 @@
-import type { ChildProcess } from 'child_process';
-import type { AnkiService } from './anki';
-
 import { writeFile } from 'fs/promises';
 import { join } from 'path';
 import { tmpdir } from 'os';
 import { randomBytes } from 'crypto';
+import { spawn, type ChildProcess } from 'child_process';
+
+import type { AnkiService } from './anki';
 
 export class AudioPlayer {
   private currentProcess: ChildProcess | null = null;
   private isPlaying = false;
-  private isBun = typeof Bun !== 'undefined';
+  private isStopping = false;
   private ffplay = process.platform === 'win32' ? 'ffplay.exe' : 'ffplay';
   private tmpFiles: string[] = [];
 
@@ -55,9 +55,8 @@ export class AudioPlayer {
 
       this.isPlaying = true;
 
-      if (this.isBun) {
-        const proc = Bun.spawn([
-          this.ffplay,
+      await new Promise<void>((resolve, reject) => {
+        const proc = spawn(this.ffplay, [
           "-nodisp",
           "-autoexit",
           "-hide_banner",
@@ -66,69 +65,45 @@ export class AudioPlayer {
           filepath
         ]);
 
-        this.currentProcess = proc as unknown as ChildProcess;
-        await proc.exited;
-      } else {
-        const { spawn } = await import('child_process');
-        await new Promise<void>((resolve, reject) => {
-          const proc = spawn(this.ffplay, [
-            "-nodisp",
-            "-autoexit",
-            "-hide_banner",
-            "-loglevel",
-            "quiet",
-            filepath
-          ]);
+        this.currentProcess = proc;
 
-          this.currentProcess = proc;
-
-          proc.on('close', (code) => {
-            this.isPlaying = false;
-            this.currentProcess = null;
-            if (code !== 0) {
-              reject(new Error(`ffplay exited with code ${code}`));
+        proc.on('exit', (code) => {
+          if (code !== 0) {
+            if (this.isStopping) {
+              this.isStopping = false;
             } else {
-              resolve();
+              reject(new Error(`ffplay exited with code ${code}`));
             }
-          });
-
-          proc.on('error', (err) => {
-            this.isPlaying = false;
-            this.currentProcess = null;
-            reject(err);
-          });
+          } else {
+            resolve();
+          }
+        })
+        proc.on('error', (err) => {
+          reject(err);
         });
-      }
+      });
     } catch (error) {
       console.error('Error playing audio:', error);
+      throw error;
+    } finally {
       this.isPlaying = false;
       this.currentProcess = null;
-      throw error;
     }
   }
 
   stop(): void {
     if (this.currentProcess) {
-      if (this.isBun) {
-        this.currentProcess.kill();
-      } else {
-        this.currentProcess.kill('SIGTERM');
-      }
-      this.currentProcess = null;
-      this.isPlaying = false;
+      this.isStopping = true
+      this.currentProcess.kill();
     }
   }
 
   async cleanup(): Promise<void> {
     for (const tmpFile of this.tmpFiles) {
       try {
-        if (this.isBun) {
-          await Bun.file(tmpFile).delete();
-        } else {
-          // Use node's fs promises API
-          const { unlink } = await import('fs/promises');
-          await unlink(tmpFile);
-        }
+        // Use node's fs promises API
+        const { unlink } = await import('fs/promises');
+        await unlink(tmpFile);
         this.debugLog('Cleaned up temp file:', tmpFile);
       } catch (error) {
         this.debugLog('Error cleaning up temp file:', tmpFile, error);
