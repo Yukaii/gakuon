@@ -35,6 +35,12 @@ async function getCardContent(
   return { content, audioFiles, isNewContent };
 }
 
+function isContentValid(content: DynamicContent, deckConfig: DeckConfig): boolean {
+  return Object.keys(deckConfig.responseFields).every(field =>
+    content[field] !== undefined && content[field] !== null
+  );
+}
+
 interface LearnOptions {
   debug?: boolean;
 }
@@ -116,8 +122,20 @@ export async function learn(options: LearnOptions = {}) {
         currentAudio = await getCardContent(card, deckConfig, contentManager);
       }
 
-      const { content, audioFiles, isNewContent } = currentAudio;
+      let { content, audioFiles, isNewContent } = currentAudio;
       let isCardComplete = false;
+
+      // Check if content is valid, if not, regenerate
+      if (!isContentValid(content, deckConfig)) {
+        debug('Invalid cached content detected, regenerating...');
+        console.log('\nInvalid cached content detected, regenerating...');
+
+        const newAudio = await getCardContent(card, deckConfig, contentManager, true);
+        content = newAudio.content;
+        audioFiles = newAudio.audioFiles;
+        isNewContent = true;
+        currentAudio = newAudio;
+      }
 
       if (!options.debug) {
         console.clear();
@@ -127,7 +145,11 @@ export async function learn(options: LearnOptions = {}) {
       console.log(`Card ${currentIdx + 1}/${dueCards.length}`);
       console.log('\nGenerated content:');
       Object.entries(deckConfig.responseFields).forEach(([field, config], index) => {
-        console.log(`${index + 1}. ${config.description}:`, content[field]);
+        const value = content[field];
+        if (value === undefined || value === null) {
+          debug(`Missing content for field: ${field}`);
+        }
+        console.log(`${index + 1}. ${config.description}:`, value || '[Missing Content]');
       });
 
       if (!isNewContent) {
