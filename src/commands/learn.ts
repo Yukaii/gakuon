@@ -2,8 +2,8 @@ import { mkdir } from 'fs/promises';
 import { loadConfig, findDeckConfig } from '../config/loader';
 import { OpenAIService } from '../services/openai';
 import { AnkiService, type Card } from '../services/anki';
-import { playAudio } from '../services/audio';
-import { waitForKeyPress, displayControls } from '../utils/keyboard';
+import { AudioPlayer } from '../services/audio';
+import { KeyAction, KeyboardHandler } from '../utils/keyboard';
 import type { CardContent, DeckConfig } from '../config/types';
 
 interface AudioGeneration {
@@ -45,10 +45,15 @@ async function generateCardAudio(
 }
 
 export async function learn() {
+  const audioPlayer = new AudioPlayer();
+  const keyboard = new KeyboardHandler();
+
   try {
     const config = loadConfig();
     const ankiService = new AnkiService(config.global.ankiHost);
     const openaiService = new OpenAIService(config.global.openaiApiKey);
+
+    keyboard.start();
 
     await mkdir(config.global.audioDir, { recursive: true });
 
@@ -113,67 +118,95 @@ export async function learn() {
       }
 
       const { content, audioFiles } = currentAudio;
+      let isCardComplete = false;
 
-      // Display generated content
+      console.clear();
+      console.log(`Card ${currentIdx + 1}/${dueCards.length}`);
       console.log('\nGenerated content:');
       console.log('1. Example sentence:', content.sentence);
       console.log('2. Japanese explanation:', content.targetExplanation);
       console.log('3. English explanation:', content.nativeExplanation);
+      keyboard.displayControls();
 
       // Progressive audio playback
       console.log('\nPlaying audio...');
       const sections = ['Example sentence', 'Japanese explanation', 'English explanation'];
 
-      for (let i = 0; i < audioFiles.length; i++) {
-        console.log(`\nPlaying ${sections[i]}...`);
-        const audioFile = await audioFiles[i];
-        await playAudio(audioFile);
-      }
+      // Initial audio playback
+      const resolvedAudioFiles = await Promise.all(audioFiles);
 
-      // Interactive review loop
-      let playing = true;
-      displayControls();
-
-      while (playing) {
-        const key = await waitForKeyPress();
-
-        switch (key) {
-          case ' ':
-            console.log('\nReplaying all audio...');
-            for (let i = 0; i < audioFiles.length; i++) {
-              console.log(`\nPlaying ${sections[i]}...`);
-              const audioFile = await audioFiles[i];
-              await playAudio(audioFile);
-            }
-            break;
-          case 'r':
-            console.log('\nReplaying example sentence...');
-            const sentenceAudio = await audioFiles[0];
-            await playAudio(sentenceAudio);
-            break;
-          case 'q':
-            console.log('\nExiting review session...');
-            return;
-          case '1':
-          case '2':
-          case '3':
-          case '4':
-            const success = await ankiService.answerCard(
-              card.cardId,
-              parseInt(key, 10)
-            );
-            if (success) {
-              playing = false;
-            } else {
-              console.log('Failed to answer card. Please try again.');
-            }
-            break;
+      // Event handling
+      keyboard.on(KeyAction.PLAY_ALL, async () => {
+        for (const [index, audioFile] of resolvedAudioFiles.entries()) {
+          if (!isCardComplete) {
+            console.log(`\nPlaying ${sections[index]}...`);
+            await audioPlayer.play(audioFile);
+          }
         }
+      });
+
+      keyboard.on(KeyAction.PLAY_SENTENCE, async () => {
+        if (!isCardComplete) {
+          await audioPlayer.play(resolvedAudioFiles[0]);
+        }
+      });
+
+      keyboard.on(KeyAction.STOP, () => {
+        audioPlayer.stop();
+      });
+
+      keyboard.on(KeyAction.NEXT, () => {
+        if (!isCardComplete) {
+          audioPlayer.stop();
+          isCardComplete = true;
+        }
+      });
+
+      keyboard.on(KeyAction.PREVIOUS, () => {
+        if (currentIdx > 0) {
+          currentIdx -= 2; // Will be incremented in the for loop
+          isCardComplete = true;
+        }
+      });
+
+      keyboard.on(KeyAction.QUIT, () => {
+        audioPlayer.stop();
+        keyboard.stop();
+        process.exit(0);
+      });
+
+      const rateCard = async (ease: number) => {
+        if (!isCardComplete) {
+          const success = await ankiService.answerCard(card.cardId, ease);
+          if (success) {
+            isCardComplete = true;
+            audioPlayer.stop();
+          }
+        }
+      };
+
+      keyboard.on(KeyAction.RATE_1, () => rateCard(1));
+      keyboard.on(KeyAction.RATE_2, () => rateCard(2));
+      keyboard.on(KeyAction.RATE_3, () => rateCard(3));
+      keyboard.on(KeyAction.RATE_4, () => rateCard(4));
+
+      // Play initial audio
+      keyboard.emit(KeyAction.PLAY_ALL);
+
+      // Wait for card completion
+      while (!isCardComplete) {
+        await new Promise(resolve => setTimeout(resolve, 100));
       }
+
+      // Clean up listeners for this card
+      keyboard.removeAllListeners();
     }
 
     console.log('\nReview session completed!');
   } catch (error) {
     console.error('Error during review:', error);
+  } finally {
+    keyboard.stop();
+    audioPlayer.stop();
   }
 }
