@@ -47,7 +47,7 @@ function isContentValid(
 
 interface LearnOptions {
   debug?: boolean;
-  deck?: string; // Added deck option
+  deck?: string;
 }
 
 export async function learn(options: LearnOptions = {}) {
@@ -91,9 +91,6 @@ export async function learn(options: LearnOptions = {}) {
       });
       deckName = selectedDeck;
     }
-
-    debug("Starting keyboard handler");
-    keyboard.start();
 
     debug("Fetching due cards from deck:", deckName);
     const dueCards = await ankiService.getDueCardsInfo(
@@ -145,6 +142,9 @@ export async function learn(options: LearnOptions = {}) {
 
     debug("Starting initial prefetch");
     await startPrefetch(0);
+
+    debug("Starting keyboard handler");
+    keyboard.start();
 
     for (let currentIdx = 0; currentIdx < dueCards.length; currentIdx++) {
       const card = dueCards[currentIdx];
