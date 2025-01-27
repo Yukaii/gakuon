@@ -1,38 +1,46 @@
-import { parse, stringify } from '@iarna/toml';
-import { existsSync, readFileSync, writeFileSync } from 'fs';
-import { join } from 'path';
-import { homedir } from 'os';
-import { type GakuonConfig, type DeckConfig, QueueOrder, ReviewSortOrder, NewCardGatherOrder } from './types';
-import { interpolateEnvVars } from '../utils/path';
+import { parse, stringify } from "@iarna/toml";
+import { existsSync, readFileSync, writeFileSync } from "fs";
+import { join } from "path";
+import { homedir } from "os";
+import {
+  type GakuonConfig,
+  type DeckConfig,
+  QueueOrder,
+  ReviewSortOrder,
+  NewCardGatherOrder,
+} from "./types";
+import { interpolateEnvVars } from "../utils/path";
 
 const DEFAULT_CONFIG: GakuonConfig = {
   global: {
-    ankiHost: 'http://localhost:8765',
-    openaiApiKey: '${OPENAI_API_KEY}',
-    ttsVoice: 'alloy',
+    ankiHost: "http://localhost:8765",
+    openaiApiKey: "${OPENAI_API_KEY}",
+    ttsVoice: "alloy",
     cardOrder: {
       queueOrder: QueueOrder.LEARNING_REVIEW_NEW,
       reviewOrder: ReviewSortOrder.DUE_DATE_RANDOM,
       newCardOrder: NewCardGatherOrder.DECK,
-    }
+    },
   },
-  decks: []
+  decks: [],
 };
 
 // Define allowed keys for environment variable interpolation
-const ALLOWED_ENV_KEYS = new Set(['global.openaiApiKey']);
+const ALLOWED_ENV_KEYS = new Set(["global.openaiApiKey"]);
 
 function processConfigValues(obj: any, path: string[] = []): any {
-  if (typeof obj === 'string') {
-    const fullPath = path.join('.');
+  if (typeof obj === "string") {
+    const fullPath = path.join(".");
     return ALLOWED_ENV_KEYS.has(fullPath) ? interpolateEnvVars(obj) : obj;
   }
 
   if (Array.isArray(obj)) {
-    return obj.map((item, index) => processConfigValues(item, [...path, index.toString()]));
+    return obj.map((item, index) =>
+      processConfigValues(item, [...path, index.toString()]),
+    );
   }
 
-  if (obj && typeof obj === 'object') {
+  if (obj && typeof obj === "object") {
     const processed: any = {};
     for (const [key, value] of Object.entries(obj)) {
       processed[key] = processConfigValues(value, [...path, key]);
@@ -44,13 +52,13 @@ function processConfigValues(obj: any, path: string[] = []): any {
 }
 
 export function loadConfig(): GakuonConfig {
-  const configPath = join(homedir(), '.gakuon', 'config.toml');
+  const configPath = join(homedir(), ".gakuon", "config.toml");
 
   if (!existsSync(configPath)) {
-    saveConfig(DEFAULT_CONFIG)
+    saveConfig(DEFAULT_CONFIG);
   }
 
-  const configFile = readFileSync(configPath, 'utf-8');
+  const configFile = readFileSync(configPath, "utf-8");
   const rawConfig = parse(configFile) as any as GakuonConfig;
 
   const withEnvVars = processConfigValues(rawConfig);
@@ -59,30 +67,35 @@ export function loadConfig(): GakuonConfig {
     ...withEnvVars,
     global: {
       ...withEnvVars.global,
-    }
+    },
   };
 }
 
 // Rest of deck-related functions remain unchanged
-export function findDeckConfig(deckName: string, configs: DeckConfig[]): DeckConfig | undefined {
-  return configs.find(config => new RegExp(config.pattern).test(deckName));
+export function findDeckConfig(
+  deckName: string,
+  configs: DeckConfig[],
+): DeckConfig | undefined {
+  return configs.find((config) => new RegExp(config.pattern).test(deckName));
 }
 
 function reverseProcessConfigValues(obj: any, path: string[] = []): any {
-  if (typeof obj === 'string') {
-    const fullPath = path.join('.');
+  if (typeof obj === "string") {
+    const fullPath = path.join(".");
     if (ALLOWED_ENV_KEYS.has(fullPath)) {
       const envValue = process.env.OPENAI_API_KEY;
-      return obj === envValue ? '${OPENAI_API_KEY}' : obj;
+      return obj === envValue ? "${OPENAI_API_KEY}" : obj;
     }
     return obj;
   }
 
   if (Array.isArray(obj)) {
-    return obj.map((item, index) => reverseProcessConfigValues(item, [...path, index.toString()]));
+    return obj.map((item, index) =>
+      reverseProcessConfigValues(item, [...path, index.toString()]),
+    );
   }
 
-  if (obj && typeof obj === 'object') {
+  if (obj && typeof obj === "object") {
     const processed: any = {};
     for (const [key, value] of Object.entries(obj)) {
       processed[key] = reverseProcessConfigValues(value, [...path, key]);
@@ -95,7 +108,7 @@ function reverseProcessConfigValues(obj: any, path: string[] = []): any {
 
 // Rest of config saving and backup functions remain unchanged
 export async function saveConfig(config: GakuonConfig): Promise<void> {
-  const configPath = join(homedir(), '.gakuon', 'config.toml');
+  const configPath = join(homedir(), ".gakuon", "config.toml");
 
   try {
     const processedConfig = reverseProcessConfigValues(config);
@@ -107,19 +120,23 @@ export async function saveConfig(config: GakuonConfig): Promise<void> {
 
 ${tomlContent}`;
 
-    writeFileSync(configPath, configWithHeader, 'utf-8');
+    writeFileSync(configPath, configWithHeader, "utf-8");
   } catch (error) {
     throw new Error(`Failed to save configuration: ${error}`);
   }
 }
 
 export async function backupConfig(): Promise<string> {
-  const configPath = join(homedir(), '.gakuon', 'config.toml');
-  const backupPath = join(homedir(), '.gakuon', `config.backup.${Date.now()}.toml`);
+  const configPath = join(homedir(), ".gakuon", "config.toml");
+  const backupPath = join(
+    homedir(),
+    ".gakuon",
+    `config.backup.${Date.now()}.toml`,
+  );
 
   try {
-    const currentConfig = readFileSync(configPath, 'utf-8');
-    writeFileSync(backupPath, currentConfig, 'utf-8');
+    const currentConfig = readFileSync(configPath, "utf-8");
+    writeFileSync(backupPath, currentConfig, "utf-8");
     return backupPath;
   } catch (error) {
     throw new Error(`Failed to backup configuration: ${error}`);

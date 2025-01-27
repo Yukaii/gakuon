@@ -1,29 +1,35 @@
-import { writeFile } from 'fs/promises';
-import { join } from 'path';
-import { tmpdir } from 'os';
-import { randomBytes } from 'crypto';
-import { spawn, type ChildProcess } from 'child_process';
+import { writeFile } from "fs/promises";
+import { join } from "path";
+import { tmpdir } from "os";
+import { randomBytes } from "crypto";
+import { spawn, type ChildProcess } from "child_process";
 
-import type { AnkiService } from './anki';
+import type { AnkiService } from "./anki";
 
 export class AudioPlayer {
   private currentProcess: ChildProcess | null = null;
   private isPlaying = false;
   private isStopping = false;
-  private ffplay = process.platform === 'win32' ? 'ffplay.exe' : 'ffplay';
+  private ffplay = process.platform === "win32" ? "ffplay.exe" : "ffplay";
   private tmpFiles: string[] = [];
 
-  constructor(private ankiService: AnkiService, private debug = false) {}
+  constructor(
+    private ankiService: AnkiService,
+    private debug = false,
+  ) {}
 
   private debugLog(...args: any[]) {
     if (this.debug) {
-      console.log('[AudioPlayer]', ...args);
+      console.log("[AudioPlayer]", ...args);
     }
   }
 
   private async createTempFile(base64Data: string): Promise<string> {
-    const tmpPath = join(tmpdir(), `gakuon_${randomBytes(6).toString('hex')}.mp3`);
-    const buffer = Buffer.from(base64Data, 'base64');
+    const tmpPath = join(
+      tmpdir(),
+      `gakuon_${randomBytes(6).toString("hex")}.mp3`,
+    );
+    const buffer = Buffer.from(base64Data, "base64");
     await writeFile(tmpPath, buffer);
     this.tmpFiles.push(tmpPath);
     return tmpPath;
@@ -38,17 +44,18 @@ export class AudioPlayer {
       let filepath: string;
 
       // Check if it's an Anki sound reference
-      if (audioSource.startsWith('[sound:') && audioSource.endsWith(']')) {
+      if (audioSource.startsWith("[sound:") && audioSource.endsWith("]")) {
         const filename = audioSource.slice(7, -1);
-        this.debugLog('Retrieving media file:', filename);
+        this.debugLog("Retrieving media file:", filename);
 
-        const base64Content = await this.ankiService.retrieveMediaFile(filename);
+        const base64Content =
+          await this.ankiService.retrieveMediaFile(filename);
         if (!base64Content) {
           throw new Error(`Media file not found: ${filename}`);
         }
 
         filepath = await this.createTempFile(base64Content);
-        this.debugLog('Created temp file:', filepath);
+        this.debugLog("Created temp file:", filepath);
       } else {
         filepath = audioSource;
       }
@@ -62,12 +69,12 @@ export class AudioPlayer {
           "-hide_banner",
           "-loglevel",
           "quiet",
-          filepath
+          filepath,
         ]);
 
         this.currentProcess = proc;
 
-        proc.on('exit', (code) => {
+        proc.on("exit", (code) => {
           if (code !== 0) {
             if (this.isStopping) {
               this.isStopping = false;
@@ -77,13 +84,13 @@ export class AudioPlayer {
           } else {
             resolve();
           }
-        })
-        proc.on('error', (err) => {
+        });
+        proc.on("error", (err) => {
           reject(err);
         });
       });
     } catch (error) {
-      console.error('Error playing audio:', error);
+      console.error("Error playing audio:", error);
       throw error;
     } finally {
       this.isPlaying = false;
@@ -93,7 +100,7 @@ export class AudioPlayer {
 
   stop(): void {
     if (this.currentProcess) {
-      this.isStopping = true
+      this.isStopping = true;
       this.currentProcess.kill();
     }
   }
@@ -102,11 +109,11 @@ export class AudioPlayer {
     for (const tmpFile of this.tmpFiles) {
       try {
         // Use node's fs promises API
-        const { unlink } = await import('fs/promises');
+        const { unlink } = await import("fs/promises");
         await unlink(tmpFile);
-        this.debugLog('Cleaned up temp file:', tmpFile);
+        this.debugLog("Cleaned up temp file:", tmpFile);
       } catch (error) {
-        this.debugLog('Error cleaning up temp file:', tmpFile, error);
+        this.debugLog("Error cleaning up temp file:", tmpFile, error);
       }
     }
     this.tmpFiles = [];

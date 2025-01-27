@@ -1,15 +1,15 @@
 export interface ResponseField {
   description: string;
   required: boolean;
-  audio?: boolean;  // Whether this field should be converted to audio
+  audio?: boolean; // Whether this field should be converted to audio
 }
 
 export interface DeckConfig {
   name: string;
   pattern: string;
-  fields: Record<string, string>;  // Input fields mapping
+  fields: Record<string, string>; // Input fields mapping
   prompt: string;
-  responseFields: Record<string, ResponseField>;  // Output fields configuration
+  responseFields: Record<string, ResponseField>; // Output fields configuration
 }
 
 // Remove CardContent interface as it will be dynamic
@@ -22,10 +22,10 @@ export class PromptError extends Error {
       missingFields?: string[];
       invalidFields?: string[];
       configIssues?: string[];
-    }
+    },
   ) {
     super(message);
-    this.name = 'PromptError';
+    this.name = "PromptError";
   }
 }
 
@@ -49,7 +49,7 @@ export interface Card {
   deckName: string;
   modelName: string;
   fields: Record<string, { value: string; order: number }>;
-  queue: number;  // 0=new, 1=learning, 2=review
+  queue: number; // 0=new, 1=learning, 2=review
   due: number;
   interval: number;
   factor: number;
@@ -61,32 +61,32 @@ export interface Card {
 export enum CardQueueType {
   NEW = 0,
   LEARNING = 1,
-  REVIEW = 2
+  REVIEW = 2,
 }
 
 export enum NewCardGatherOrder {
-  DECK = 'deck',                    // Alphabetical by deck name
-  DECK_RANDOM_NOTES = 'deck_random_notes',
-  ASCENDING_POSITION = 'ascending_position',
-  DESCENDING_POSITION = 'descending_position',
-  RANDOM_NOTES = 'random_notes',
-  RANDOM_CARDS = 'random_cards'
+  DECK = "deck", // Alphabetical by deck name
+  DECK_RANDOM_NOTES = "deck_random_notes",
+  ASCENDING_POSITION = "ascending_position",
+  DESCENDING_POSITION = "descending_position",
+  RANDOM_NOTES = "random_notes",
+  RANDOM_CARDS = "random_cards",
 }
 
 export enum ReviewSortOrder {
-  DUE_DATE_RANDOM = 'due_date_random',
-  DUE_DATE_DECK = 'due_date_deck',
-  DECK_DUE_DATE = 'deck_due_date',
-  ASCENDING_INTERVALS = 'ascending_intervals',
-  DESCENDING_INTERVALS = 'descending_intervals',
-  ASCENDING_EASE = 'ascending_ease',
-  DESCENDING_EASE = 'descending_ease',
-  RELATIVE_OVERDUENESS = 'relative_overdueness'
+  DUE_DATE_RANDOM = "due_date_random",
+  DUE_DATE_DECK = "due_date_deck",
+  DECK_DUE_DATE = "deck_due_date",
+  ASCENDING_INTERVALS = "ascending_intervals",
+  DESCENDING_INTERVALS = "descending_intervals",
+  ASCENDING_EASE = "ascending_ease",
+  DESCENDING_EASE = "descending_ease",
+  RELATIVE_OVERDUENESS = "relative_overdueness",
 }
 
 export enum QueueOrder {
-  LEARNING_REVIEW_NEW = 'learning_review_new',    // Default
-  REVIEW_LEARNING_NEW = 'review_learning_new',
-  NEW_LEARNING_REVIEW = 'new_learning_review',
-  MIXED = 'mixed'
+  LEARNING_REVIEW_NEW = "learning_review_new", // Default
+  REVIEW_LEARNING_NEW = "review_learning_new",
+  NEW_LEARNING_REVIEW = "new_learning_review",
+  MIXED = "mixed",
 }

@@ -1,12 +1,12 @@
-import { AnkiService } from '../services/anki';
-import { OpenAIService } from '../services/openai';
-import { loadConfig, saveConfig } from '../config/loader';
-import { join } from 'path';
-import { homedir } from 'os';
-import { mkdir } from 'fs/promises';
-import Enquirer from 'enquirer';
-import { parse } from '@iarna/toml';
-import type { DeckConfig } from '../config/types';
+import { AnkiService } from "../services/anki";
+import { OpenAIService } from "../services/openai";
+import { loadConfig, saveConfig } from "../config/loader";
+import { join } from "path";
+import { homedir } from "os";
+import { mkdir } from "fs/promises";
+import Enquirer from "enquirer";
+import { parse } from "@iarna/toml";
+import type { DeckConfig } from "../config/types";
 
 interface InitOptions {
   debug?: boolean;
@@ -16,13 +16,11 @@ async function generateDeckConfig(
   openai: OpenAIService,
   anki: AnkiService,
   deckName: string,
-  sampleSize = 3
+  sampleSize = 3,
 ): Promise<any> {
   // Get sample cards from deck
   const cardIds = await anki.findCards(deckName);
-  const sampleCards = await anki.getCardsInfo(
-    cardIds.slice(0, sampleSize)
-  );
+  const sampleCards = await anki.getCardsInfo(cardIds.slice(0, sampleSize));
 
   // Extract field structure
   const fieldStructure = Object.keys(sampleCards[0].fields);
@@ -31,14 +29,16 @@ async function generateDeckConfig(
   const prompt = `You are a TOML configuration generator. Analyze this Anki deck structure and output a TOML configuration for an audio-based learning system.
 
 Deck Name: ${deckName}
-Available Fields: ${fieldStructure.join(', ')}
+Available Fields: ${fieldStructure.join(", ")}
 
 Sample Card Contents:
-${sampleCards.map(card =>
-  fieldStructure.map(field =>
-    `${field}: ${card.fields[field].value}`
-  ).join('\n')
-).join('\n\n')}
+${sampleCards
+  .map((card) =>
+    fieldStructure
+      .map((field) => `${field}: ${card.fields[field].value}`)
+      .join("\n"),
+  )
+  .join("\n\n")}
 
 Example format:
 [[decks]]
@@ -80,7 +80,6 @@ Requirements:
 4. Define response fields suitable for audio learning
 5. Start output directly with [[decks]]`;
 
-
   const completion = await openai.client.chat.completions.create({
     model: "gpt-4o-mini",
     messages: [{ role: "user", content: prompt }],
@@ -103,32 +102,36 @@ export async function init(options: InitOptions = {}) {
 
     // Select deck
     const { deckName } = await Enquirer.prompt<{ deckName: string }>({
-      type: 'select',
-      name: 'deckName',
-      message: 'Select a deck to configure:',
-      choices: decks
+      type: "select",
+      name: "deckName",
+      message: "Select a deck to configure:",
+      choices: decks,
     });
 
-    console.log('\nAnalyzing deck structure and generating configuration...');
+    console.log("\nAnalyzing deck structure and generating configuration...");
 
     // Generate deck config
-    const deckConfig = await generateDeckConfig(openaiService, ankiService, deckName);
+    const deckConfig = await generateDeckConfig(
+      openaiService,
+      ankiService,
+      deckName,
+    );
 
     // Show generated config
-    console.log('\nGenerated configuration:');
+    console.log("\nGenerated configuration:");
     console.log(deckConfig);
 
     // Confirm save
     const { confirmed } = await Enquirer.prompt<{ confirmed: boolean }>({
-      type: 'confirm',
-      name: 'confirmed',
-      message: 'Would you like to save this configuration?',
-      initial: true
+      type: "confirm",
+      name: "confirmed",
+      message: "Would you like to save this configuration?",
+      initial: true,
     });
 
     if (confirmed) {
       // Ensure config directory exists
-      await mkdir(join(homedir(), '.gakuon'), { recursive: true });
+      await mkdir(join(homedir(), ".gakuon"), { recursive: true });
 
       try {
         // Parse TOML and merge config
@@ -137,13 +140,12 @@ export async function init(options: InitOptions = {}) {
 
         // Save config
         await saveConfig(config);
-        console.log('Configuration saved successfully!');
+        console.log("Configuration saved successfully!");
       } catch (error) {
-        console.error('Failed to parse or save configuration:', error);
+        console.error("Failed to parse or save configuration:", error);
       }
     }
-
   } catch (error) {
-    console.error('Error during initialization:', error);
+    console.error("Error during initialization:", error);
   }
 }
