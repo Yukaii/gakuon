@@ -30,7 +30,7 @@ program
 program
   .command("serve")
   .description("Start the Gakuon HTTP server")
-  .option("-p, --port <number>", "Port to listen on", "3000")
+  .option("-p, --port <number>", "Port to listen on", "4989")
   .option("-d, --debug", "Enable debug mode")
   .action(serve);
 
