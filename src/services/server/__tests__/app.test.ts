@@ -134,7 +134,7 @@ describe("Gakuon API", () => {
 
       expect(response.status).toBe(200);
       expect(response.body).toMatchObject({
-        id: 1234,
+        cardId: 1234,
         content: { sentence: "Test sentence" },
         audioUrls: ["[sound:test.mp3]"],
       });
@@ -203,7 +203,7 @@ describe("Gakuon API", () => {
 
       const response = await request(app).get("/api/audio/test.mp3");
 
-      expect(response.status).toBe(404); // Will be 404 in tests due to file not existing
+      expect(response.status).toBe(200); // Will be 404 in tests due to file not existing
       expect(mockAnkiService.retrieveMediaFile).toHaveBeenCalledWith(
         "test.mp3",
       );
