@@ -96,7 +96,7 @@ export function createServer(deps: ServerDependencies) {
         await deps.contentManager.getExistingContent(card);
 
       const response: CardResponse = {
-        id: card.cardId,
+        cardId: card.cardId,
         content: content || {},
         audioUrls: await Promise.all(audioFiles),
         queue: card.queue,

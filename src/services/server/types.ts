@@ -17,7 +17,7 @@ export interface APIError {
 }
 
 export interface CardResponse {
-  id: number;
+  cardId: number;
   content: DynamicContent;
   audioUrls: string[];
   queue: number;
