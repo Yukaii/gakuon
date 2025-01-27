@@ -207,10 +207,8 @@ export async function learn(options: LearnOptions = {}) {
       }
       keyboard.displayControls();
 
-      if (options.debug) {
-        debug("Card ID:", card.cardId);
-        debug("Response fields:", Object.keys(deckConfig.responseFields));
-      }
+      debug("Card ID:", card.cardId);
+      debug("Response fields:", Object.keys(deckConfig.responseFields));
 
       // Get audio fields
       const audioFields = Object.entries(deckConfig.responseFields)
