@@ -51,7 +51,7 @@ export class ContentManager {
     return this.generateAndStoreContent(card, deckConfig);
   }
 
-  private async getExistingContent(card: Card) {
+  async getExistingContent(card: Card) {
     const metadata = await this.ankiService.getCardMetadata(card);
 
     // Get stored content
@@ -62,7 +62,7 @@ export class ContentManager {
       ([_, reference]) => Promise.resolve(reference as string),
     );
 
-    return { content, audioFiles, isNewContent: false };
+    return { content, audioFiles, isNewContent: false, metadata };
   }
 
   private async generateAndStoreContent(card: Card, deckConfig: DeckConfig) {

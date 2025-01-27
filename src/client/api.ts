@@ -1,4 +1,10 @@
-import type { DecksResponse, Card, CardAnswer, DeckConfigResponse } from "./types";
+import type {
+  DecksResponse,
+  Card,
+  CardAnswer,
+  DeckConfigResponse,
+  CardWithMeta,
+} from "./types";
 
 const API_BASE = "http://localhost:4989/api";
 
@@ -16,7 +22,7 @@ export async function fetchDeckCards(deckName: string): Promise<Card[]> {
   return response.json();
 }
 
-export async function fetchCard(cardId: number): Promise<Card> {
+export async function fetchCard(cardId: number): Promise<CardWithMeta> {
   const response = await fetch(`${API_BASE}/cards/${cardId}`);
   if (!response.ok) throw new Error("Failed to fetch card");
   return response.json();
@@ -45,13 +51,17 @@ export async function regenerateCard(
   return response.json();
 }
 
-export async function fetchDeckConfig(deckName: string): Promise<DeckConfigResponse> {
-  const response = await fetch(`${API_BASE}/decks/${encodeURIComponent(deckName)}/config`);
+export async function fetchDeckConfig(
+  deckName: string,
+): Promise<DeckConfigResponse> {
+  const response = await fetch(
+    `${API_BASE}/decks/${encodeURIComponent(deckName)}/config`,
+  );
   if (!response.ok) {
     if (response.status === 404) {
-      throw new Error('Deck configuration not found');
+      throw new Error("Deck configuration not found");
     }
-    throw new Error('Failed to fetch deck configuration');
+    throw new Error("Failed to fetch deck configuration");
   }
   return response.json();
 }

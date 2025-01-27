@@ -25,6 +25,7 @@ const mockOpenAIService = {
 
 const mockContentManager = {
   getOrGenerateContent: jest.fn(),
+  getExistingContent: jest.fn(),
 };
 
 const mockConfig = {
@@ -124,12 +125,16 @@ describe("Gakuon API", () => {
         content: { sentence: "Test sentence" },
         audio: { sentence: "[sound:test.mp3]" },
       });
+      mockContentManager.getExistingContent.mockResolvedValue({
+        content: { sentence: "Test sentence" },
+        audioFiles: [Promise.resolve("[sound:test.mp3]")],
+      });
 
       const response = await request(app).get("/api/cards/1234");
 
       expect(response.status).toBe(200);
       expect(response.body).toMatchObject({
-        id: 1234,
+        cardId: 1234,
         content: { sentence: "Test sentence" },
         audioUrls: ["[sound:test.mp3]"],
       });
@@ -198,7 +203,7 @@ describe("Gakuon API", () => {
 
       const response = await request(app).get("/api/audio/test.mp3");
 
-      expect(response.status).toBe(404); // Will be 404 in tests due to file not existing
+      expect(response.status).toBe(200); // Will be 404 in tests due to file not existing
       expect(mockAnkiService.retrieveMediaFile).toHaveBeenCalledWith(
         "test.mp3",
       );

@@ -9,6 +9,22 @@ import type {
 } from "./types";
 import { PromptError } from "../../config/types";
 import { findDeckConfig } from "../../config/loader";
+import { randomBytes } from "node:crypto";
+import { join } from "node:path";
+import { tmpdir } from "node:os";
+import { writeFile, unlink } from "node:fs/promises";
+
+async function saveBase64ToTemp(base64Data: string): Promise<string> {
+  // Create a unique filename
+  const filename = `gakuon_${randomBytes(4).toString("hex")}.mp3`;
+  const tempPath = join(tmpdir(), filename);
+
+  // Convert base64 to buffer and save
+  const buffer = Buffer.from(base64Data, "base64");
+  await writeFile(tempPath, buffer);
+
+  return tempPath;
+}
 
 export function createServer(deps: ServerDependencies) {
   const app = express();
@@ -76,18 +92,21 @@ export function createServer(deps: ServerDependencies) {
         return res.status(404).json({ error: "Card not found" });
       }
 
-      const metadata = await deps.ankiService.getCardMetadata(card);
+      const { metadata, content, audioFiles } =
+        await deps.contentManager.getExistingContent(card);
 
       const response: CardResponse = {
-        id: card.cardId,
-        content: metadata.content || {},
-        audioUrls: Object.values(metadata.audio || {}),
+        cardId: card.cardId,
+        content: content || {},
+        audioUrls: await Promise.all(audioFiles),
         queue: card.queue,
         due: card.due,
         interval: card.interval,
         factor: card.factor,
         reps: card.reps,
         lapses: card.lapses,
+        fields: card.fields,
+        metadata,
       };
 
       res.json(response);
@@ -158,22 +177,36 @@ export function createServer(deps: ServerDependencies) {
   );
 
   const serveAudioFile = async (req: Request, res: Response, next) => {
+    let tempFilePath: string | null = null;
+
     try {
-      const audioPath = await deps.ankiService.retrieveMediaFile(
+      const base64Audio = await deps.ankiService.retrieveMediaFile(
         req.params.filename,
       );
-      if (!audioPath) {
+
+      if (!base64Audio) {
         return res.status(404).json({ error: "Audio file not found" });
       }
 
-      // Add error handling for sendFile
-      res.sendFile(audioPath, (err) => {
+      // Save base64 to temporary file
+      tempFilePath = await saveBase64ToTemp(base64Audio);
+
+      // Send the file
+      res.sendFile(tempFilePath, (err) => {
         if (err) {
-          // If file doesn't exist or can't be read, return 404
           res.status(404).json({ error: "Audio file not found" });
+        }
+
+        // Clean up: Delete the temporary file after sending
+        if (tempFilePath) {
+          unlink(tempFilePath).catch(console.error);
         }
       });
     } catch (err) {
+      // Clean up on error
+      if (tempFilePath) {
+        unlink(tempFilePath).catch(console.error);
+      }
       next(err);
     }
   };

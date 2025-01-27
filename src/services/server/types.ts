@@ -17,7 +17,7 @@ export interface APIError {
 }
 
 export interface CardResponse {
-  id: number;
+  cardId: number;
   content: DynamicContent;
   audioUrls: string[];
   queue: number;
@@ -26,6 +26,8 @@ export interface CardResponse {
   factor: number;
   reps: number;
   lapses: number;
+  fields: Card["fields"];
+  metadata: Record<string, string>;
 }
 
 export interface DeckResponse {

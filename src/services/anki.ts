@@ -242,7 +242,7 @@ export class AnkiService {
 
   // biome-ignore lint/suspicious/noExplicitAny: <explanation>
   async getCardMetadata(card: Card): Promise<any> {
-    const commentField = card.fields[GAKUON_FIELD];
+    const commentField = card?.fields?.[GAKUON_FIELD];
     if (!commentField) return {};
 
     try {

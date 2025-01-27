@@ -58,6 +58,12 @@ export interface Card {
   note: number;
 }
 
+export interface CardMeta {
+  lastGenerated: string;
+  content: Record<string, string>;
+  audio: Record<string, string>;
+}
+
 export enum CardQueueType {
   NEW = 0,
   LEARNING = 1,
