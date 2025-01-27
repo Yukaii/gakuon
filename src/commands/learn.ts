@@ -5,6 +5,7 @@ import { AudioPlayer } from '../services/audio';
 import { KeyAction, KeyboardHandler } from '../utils/keyboard';
 import type { DynamicContent, DeckConfig, Card } from '../config/types';
 import { ContentManager } from '../services/content-manager';
+import Enquirer from 'enquirer';
 
 
 interface AudioGeneration {
@@ -43,6 +44,7 @@ function isContentValid(content: DynamicContent, deckConfig: DeckConfig): boolea
 
 interface LearnOptions {
   debug?: boolean;
+  deck?: string; // Added deck option
 }
 
 export async function learn(options: LearnOptions = {}) {
@@ -62,13 +64,30 @@ export async function learn(options: LearnOptions = {}) {
     debug('Starting keyboard handler');
     keyboard.start();
 
-    if (!config.global.defaultDeck) {
-      throw new Error('defaultDeck is required')
+    // Deck selection logic
+    let deckName: string;
+    if (options.deck) {
+      deckName = options.deck;
+    } else if (config.global.defaultDeck) {
+      deckName = config.global.defaultDeck;
+    } else {
+      // Interactive deck selection
+      const decks = await ankiService.getDeckNames();
+      if (decks.length === 0) {
+        throw new Error('No decks available in Anki');
+      }
+      const { selectedDeck } = await Enquirer.prompt<{ selectedDeck: string }>({
+        type: 'select',
+        name: 'selectedDeck',
+        message: 'Select a deck to review:',
+        choices: decks
+      });
+      deckName = selectedDeck;
     }
 
-    debug('Fetching due cards from deck:', config.global.defaultDeck);
+    debug('Fetching due cards from deck:', deckName);
     const dueCards = await ankiService.getDueCardsInfo(
-      config.global.defaultDeck,
+      deckName, // Use selected deck name
       config.global.cardOrder.queueOrder,
       config.global.cardOrder.reviewOrder,
       config.global.cardOrder.newCardOrder

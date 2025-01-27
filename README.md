@@ -63,7 +63,8 @@ openaiApiKey = "${OPENAI_API_KEY}"
 # or openaiApiKey = "sk-proj-123123123123"
 ttsVoice = "alloy"
 
-defaultDeck = "Core 2k/6k Optimized Japanese Vocabulary with Sound Part 01"
+# optional setup
+# defaultDeck = "Core 2k/6k Optimized Japanese Vocabulary with Sound Part 01"
 
 [global.cardOrder]
 queueOrder = "learning_review_new"

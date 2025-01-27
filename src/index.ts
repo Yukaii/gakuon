@@ -17,6 +17,7 @@ program
   .command('learn')
   .description('Start an audio-based learning session')
   .option('-d, --debug', 'Enable debug mode')
+  .option('--deck <name>', 'Specify deck to use') // Added deck option
   .action(learn);
 
 program
