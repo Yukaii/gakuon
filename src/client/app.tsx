@@ -1,10 +1,10 @@
-import { useState, useEffect } from 'react';
-import { fetchDecks, fetchDeckCards, answerCard, regenerateCard } from './api';
-import type { Card } from './types';
+import { useState, useEffect } from "react";
+import { fetchDecks, fetchDeckCards, answerCard, regenerateCard } from "./api";
+import type { Card } from "./types";
 
 export function App() {
   const [decks, setDecks] = useState<string[]>([]);
-  const [selectedDeck, setSelectedDeck] = useState<string>('');
+  const [selectedDeck, setSelectedDeck] = useState<string>("");
   const [cards, setCards] = useState<Card[]>([]);
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
   const [loading, setLoading] = useState(true);
@@ -18,7 +18,7 @@ export function App() {
         setDecks(response.decks);
         setLoading(false);
       } catch (err) {
-        setError('Failed to load decks');
+        setError("Failed to load decks");
         setLoading(false);
       }
     };
@@ -37,7 +37,7 @@ export function App() {
         setCurrentCardIndex(0);
         setLoading(false);
       } catch (err) {
-        setError('Failed to load cards');
+        setError("Failed to load cards");
         setLoading(false);
       }
     };
@@ -45,6 +45,8 @@ export function App() {
   }, [selectedDeck]);
 
   const currentCard = cards[currentCardIndex];
+
+  console.log(currentCard, "currentCard");
 
   const handleDeckSelect = (event: React.ChangeEvent<HTMLSelectElement>) => {
     setSelectedDeck(event.target.value);
@@ -56,13 +58,13 @@ export function App() {
     try {
       await answerCard(currentCard.id, { ease });
       if (currentCardIndex < cards.length - 1) {
-        setCurrentCardIndex(i => i + 1);
+        setCurrentCardIndex((i) => i + 1);
       } else {
         setCards([]);
         setCurrentCardIndex(0);
       }
     } catch (err) {
-      setError('Failed to submit answer');
+      setError("Failed to submit answer");
     }
   };
 
@@ -72,14 +74,14 @@ export function App() {
     try {
       setLoading(true);
       const { content } = await regenerateCard(currentCard.id);
-      setCards(cards.map(card =>
-        card.id === currentCard.id
-          ? { ...card, content }
-          : card
-      ));
+      setCards(
+        cards.map((card) =>
+          card.id === currentCard.id ? { ...card, content } : card,
+        ),
+      );
       setLoading(false);
     } catch (err) {
-      setError('Failed to regenerate card');
+      setError("Failed to regenerate card");
       setLoading(false);
     }
   };
@@ -102,8 +104,10 @@ export function App() {
         className="w-full p-2 mb-4 border rounded"
       >
         <option value="">Select a deck</option>
-        {decks.map(deck => (
-          <option key={deck} value={deck}>{deck}</option>
+        {decks.map((deck) => (
+          <option key={deck} value={deck}>
+            {deck}
+          </option>
         ))}
       </select>
 
@@ -123,7 +127,10 @@ export function App() {
               <h2 className="font-bold">Audio:</h2>
               {currentCard.audioUrls.map((url, index) => (
                 <audio key={index} controls className="w-full mb-2">
-                  <source src={`http://localhost:4989/api/audio/${url.replace('[sound:', '').replace(']', '')}`} type="audio/mpeg" />
+                  <source
+                    src={`http://localhost:4989/api/audio/${url.replace("[sound:", "").replace("]", "")}`}
+                    type="audio/mpeg"
+                  />
                 </audio>
               ))}
             </div>
@@ -167,7 +174,9 @@ export function App() {
 
       <div className="text-sm text-gray-500">
         {cards.length > 0 && (
-          <span>Card {currentCardIndex + 1} of {cards.length}</span>
+          <span>
+            Card {currentCardIndex + 1} of {cards.length}
+          </span>
         )}
       </div>
     </div>
