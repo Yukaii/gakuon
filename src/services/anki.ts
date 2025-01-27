@@ -14,9 +14,10 @@ export class AnkiService {
 
   constructor(
     private host: string,
-    private debug: boolean = false,
+    private debug = false,
   ) {}
 
+  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
   private debugLog(...args: any[]) {
     if (this.debug) {
       console.log("[AnkiService Debug]", ...args);
@@ -94,10 +95,11 @@ export class AnkiService {
           return a.factor - b.factor;
         case ReviewSortOrder.DESCENDING_EASE:
           return b.factor - a.factor;
-        case ReviewSortOrder.RELATIVE_OVERDUENESS:
+        case ReviewSortOrder.RELATIVE_OVERDUENESS: {
           const aOverdue = (Date.now() / 1000 - a.due) / a.interval;
           const bOverdue = (Date.now() / 1000 - b.due) / b.interval;
           return bOverdue - aOverdue;
+        }
         default:
           return a.due - b.due;
       }
@@ -142,7 +144,7 @@ export class AnkiService {
     await delay(1000);
 
     const cardsDue = await this.areDue(cardIds);
-    let dueCards = cardsInfo.filter((_, i) => cardsDue[i]);
+    const dueCards = cardsInfo.filter((_, i) => cardsDue[i]);
 
     // Split cards by queue type
     const newCards = dueCards.filter((c) => c.queue === CardQueueType.NEW);
@@ -231,8 +233,7 @@ export class AnkiService {
     try {
       const metadata = JSON.parse(commentField.value);
       return Boolean(
-        metadata.gakuon &&
-          metadata.gakuon.lastGenerated &&
+        metadata.gakuon?.lastGenerated &&
           metadata.gakuon.sentence,
       );
     } catch {
@@ -240,6 +241,7 @@ export class AnkiService {
     }
   }
 
+  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
   async getCardMetadata(card: Card): Promise<any> {
     const commentField = card.fields[GAKUON_FIELD];
     if (!commentField) return {};
@@ -320,6 +322,7 @@ export class AnkiService {
     return true;
   }
 
+  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
   async updateCardMetadata(card: Card, metadata: any): Promise<boolean> {
     try {
       await this.ensureGakuonField(card);

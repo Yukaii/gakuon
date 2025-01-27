@@ -14,6 +14,7 @@ interface AudioGeneration {
 }
 
 function createDebugLogger(enabled: boolean) {
+  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
   return (...args: any[]) => {
     if (enabled) {
       console.log("[command learn]", ...args);

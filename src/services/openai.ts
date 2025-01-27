@@ -1,5 +1,5 @@
 import OpenAI from "openai";
-import { writeFile } from "fs/promises";
+import { writeFile } from "node:fs/promises";
 import {
   type DeckConfig,
   type Card,
@@ -17,6 +17,7 @@ export class OpenAIService {
     this.client = new OpenAI({ apiKey });
   }
 
+  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
   private debugLog(...args: any[]) {
     if (this.debug) {
       console.log("[OpenAIService]", ...args);
@@ -107,6 +108,7 @@ ${Object.entries(deckConfig.responseFields)
       });
 
       const response = JSON.parse(
+        // biome-ignore lint/style/noNonNullAssertion: <explanation>
         completion.choices[0].message.content!,
       ) as Record<string, string>;
 
@@ -139,6 +141,7 @@ ${Object.entries(deckConfig.responseFields)
   ): Promise<string> {
     const mp3 = await this.client.audio.speech.create({
       model: "tts-1",
+      // biome-ignore lint/suspicious/noExplicitAny: <explanation>
       voice: voice as any,
       input: text,
     });

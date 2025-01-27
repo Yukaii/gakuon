@@ -1,9 +1,9 @@
-import { AnkiService } from "./anki";
-import { OpenAIService } from "./openai";
+import type { AnkiService } from "./anki";
+import type { OpenAIService } from "./openai";
 import type { Card, DeckConfig, DynamicContent } from "../config/types";
-import { tmpdir } from "os";
-import { join } from "path";
-import { randomBytes } from "crypto";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
+import { randomBytes } from "node:crypto";
 
 export class ContentManager {
   private tmpDir = tmpdir();
@@ -16,6 +16,7 @@ export class ContentManager {
     this.debugLog("Using tmpDir", this.tmpDir);
   }
 
+  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
   private debugLog(...args: any[]) {
     if (this.debug) {
       console.log("[ContentManager]", ...args);

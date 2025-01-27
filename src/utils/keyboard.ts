@@ -1,4 +1,4 @@
-import { EventEmitter } from "events";
+import { EventEmitter } from "node:events";
 
 export enum KeyAction {
   PLAY_ALL = "PLAY_ALL",
@@ -23,6 +23,7 @@ export class KeyboardHandler extends EventEmitter {
     this._handleKeyPress = this.handleKeyPress.bind(this);
   }
 
+  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
   private debugLog(...args: any[]) {
     if (this.debug) {
       console.log("[KeyboardHandler]", ...args);
