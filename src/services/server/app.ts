@@ -70,41 +70,45 @@ export function createServer(deps: ServerDependencies) {
     }
   });
 
-  const getCardDetails =
-    async (req: Request, res: Response, next: NextFunction) => {
-      try {
-        const cardId = Number.parseInt(req.params.id, 10);
-        const [card] = await deps.ankiService.getCardsInfo([cardId]);
+  const getCardDetails = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) => {
+    try {
+      const cardId = Number.parseInt(req.params.id, 10);
+      const [card] = await deps.ankiService.getCardsInfo([cardId]);
 
-        if (!card) {
-          return res.status(404).json({ error: "Card not found" });
-        }
-
-        const metadata = await deps.ankiService.getCardMetadata(card);
-
-        const response: CardResponse = {
-          id: card.cardId,
-          content: metadata.content || {},
-          audioUrls: Object.values(metadata.audio || {}),
-          queue: card.queue,
-          due: card.due,
-          interval: card.interval,
-          factor: card.factor,
-          reps: card.reps,
-          lapses: card.lapses,
-        };
-
-        res.json(response);
-      } catch (err) {
-        next(err);
+      if (!card) {
+        return res.status(404).json({ error: "Card not found" });
       }
-    };
-  app.get(
-    "/api/cards/:id",
-    getCardDetails as unknown as RequestHandler,
-  );
 
-  const submitCardAnswer = async (req: Request, res: Response, next: NextFunction) => {
+      const metadata = await deps.ankiService.getCardMetadata(card);
+
+      const response: CardResponse = {
+        id: card.cardId,
+        content: metadata.content || {},
+        audioUrls: Object.values(metadata.audio || {}),
+        queue: card.queue,
+        due: card.due,
+        interval: card.interval,
+        factor: card.factor,
+        reps: card.reps,
+        lapses: card.lapses,
+      };
+
+      res.json(response);
+    } catch (err) {
+      next(err);
+    }
+  };
+  app.get("/api/cards/:id", getCardDetails as unknown as RequestHandler);
+
+  const submitCardAnswer = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) => {
     try {
       const cardId = Number.parseInt(req.params.id, 10);
       const { ease } = req.body as AnswerRequest;
@@ -123,7 +127,10 @@ export function createServer(deps: ServerDependencies) {
       next(err);
     }
   };
-  app.post("/api/cards/:id/answer", submitCardAnswer as unknown as RequestHandler);
+  app.post(
+    "/api/cards/:id/answer",
+    submitCardAnswer as unknown as RequestHandler,
+  );
 
   const regenerateCardContent = async (req, res: Response, next) => {
     try {
@@ -141,11 +148,8 @@ export function createServer(deps: ServerDependencies) {
       }
 
       // Generate new content
-      const { content, audioFiles } = await deps.contentManager.getOrGenerateContent(
-        card,
-        config,
-        true
-      );
+      const { content, audioFiles } =
+        await deps.contentManager.getOrGenerateContent(card, config, true);
 
       // Wait for audio generation to complete
       await Promise.all(audioFiles);
@@ -155,17 +159,27 @@ export function createServer(deps: ServerDependencies) {
       next(err);
     }
   };
-  app.post("/api/cards/:id/regenerate", regenerateCardContent as unknown as RequestHandler);
+  app.post(
+    "/api/cards/:id/regenerate",
+    regenerateCardContent as unknown as RequestHandler,
+  );
 
-  const serveAudioFile = async (req, res: Response, next) => {
+  const serveAudioFile = async (req: Request, res: Response, next) => {
     try {
       const audioPath = await deps.ankiService.retrieveMediaFile(
-        req.params.filename
+        req.params.filename,
       );
       if (!audioPath) {
         return res.status(404).json({ error: "Audio file not found" });
       }
-      res.sendFile(audioPath);
+
+      // Add error handling for sendFile
+      res.sendFile(audioPath, (err) => {
+        if (err) {
+          // If file doesn't exist or can't be read, return 404
+          res.status(404).json({ error: "Audio file not found" });
+        }
+      });
     } catch (err) {
       next(err);
     }
