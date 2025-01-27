@@ -67,6 +67,8 @@ ankiHost = "http://localhost:8765"
 openaiApiKey = "${OPENAI_API_KEY}"
 # or openaiApiKey = "$OPENAI_API_KEY"
 # or openaiApiKey = "sk-proj-123123123123"
+# gakuon will perform a variable substitution for you
+# So you can safely commit this config file into your git repo
 ttsVoice = "alloy"
 
 # optional setup
