@@ -1,8 +1,8 @@
-import { writeFile } from "fs/promises";
-import { join } from "path";
-import { tmpdir } from "os";
-import { randomBytes } from "crypto";
-import { spawn, type ChildProcess } from "child_process";
+import { writeFile } from "node:fs/promises";
+import { join } from "node:path";
+import { tmpdir } from "node:os";
+import { randomBytes } from "node:crypto";
+import { spawn, type ChildProcess } from "node:child_process";
 
 import type { AnkiService } from "./anki";
 
@@ -18,6 +18,7 @@ export class AudioPlayer {
     private debug = false,
   ) {}
 
+  // biome-ignore lint/suspicious/noExplicitAny: <explanation>
   private debugLog(...args: any[]) {
     if (this.debug) {
       console.log("[AudioPlayer]", ...args);
@@ -109,7 +110,7 @@ export class AudioPlayer {
     for (const tmpFile of this.tmpFiles) {
       try {
         // Use node's fs promises API
-        const { unlink } = await import("fs/promises");
+        const { unlink } = await import("node:fs/promises");
         await unlink(tmpFile);
         this.debugLog("Cleaned up temp file:", tmpFile);
       } catch (error) {
