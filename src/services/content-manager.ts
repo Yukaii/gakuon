@@ -62,7 +62,7 @@ export class ContentManager {
       ([_, reference]) => Promise.resolve(reference as string),
     );
 
-    return { content, audioFiles, isNewContent: false };
+    return { content, audioFiles, isNewContent: false, metadata };
   }
 
   private async generateAndStoreContent(card: Card, deckConfig: DeckConfig) {

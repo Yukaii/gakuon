@@ -7,16 +7,25 @@ export interface DecksResponse {
 }
 
 export interface Card {
-  id: number;
-  content: Record<string, string>;
-  audioUrls: string[];
+  cardId: number;
   queue: number;
   due: number;
   interval: number;
   factor: number;
   reps: number;
   lapses: number;
+  fields: Record<string, string>;
 }
+
+export type CardWithMeta = Card & {
+  content: Record<string, string>;
+  audioUrls: string[];
+  metadata: {
+    lastGenerated: string;
+    content: Record<string, string>;
+    audio: Record<string, string>;
+  };
+};
 
 export interface DeckConfigResponse {
   config: {
@@ -24,11 +33,14 @@ export interface DeckConfigResponse {
     pattern?: string;
     prompt: string;
     fields: Record<string, string>;
-    responseFields: Record<string, {
-      description: string;
-      required: boolean;
-      audio?: boolean;
-    }>;
+    responseFields: Record<
+      string,
+      {
+        description: string;
+        required: boolean;
+        audio?: boolean;
+      }
+    >;
   };
 }
 

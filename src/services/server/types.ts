@@ -26,6 +26,8 @@ export interface CardResponse {
   factor: number;
   reps: number;
   lapses: number;
+  fields: Card["fields"];
+  metadata: Record<string, string>;
 }
 
 export interface DeckResponse {

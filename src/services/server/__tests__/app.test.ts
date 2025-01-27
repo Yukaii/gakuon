@@ -128,7 +128,7 @@ describe("Gakuon API", () => {
       mockContentManager.getExistingContent.mockResolvedValue({
         content: { sentence: "Test sentence" },
         audioFiles: [Promise.resolve("[sound:test.mp3]")],
-      })
+      });
 
       const response = await request(app).get("/api/cards/1234");
 
