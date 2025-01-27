@@ -49,10 +49,10 @@ interface LearnOptions {
 
 export async function learn(options: LearnOptions = {}) {
   const debug = createDebugLogger(options.debug || false);
-  const keyboard = new KeyboardHandler();
 
   debug('Loading configuration...');
   const config = loadConfig();
+  const keyboard = new KeyboardHandler(options.debug);
 
   debug('Initializing services...');
   const ankiService = new AnkiService(config.global.ankiHost, options.debug);
@@ -61,9 +61,6 @@ export async function learn(options: LearnOptions = {}) {
   const audioPlayer = new AudioPlayer(ankiService, options.debug);
 
   try {
-    debug('Starting keyboard handler');
-    keyboard.start();
-
     // Deck selection logic
     let deckName: string;
     if (options.deck) {
@@ -84,6 +81,9 @@ export async function learn(options: LearnOptions = {}) {
       });
       deckName = selectedDeck;
     }
+
+    debug('Starting keyboard handler');
+    keyboard.start();
 
     debug('Fetching due cards from deck:', deckName);
     const dueCards = await ankiService.getDueCardsInfo(

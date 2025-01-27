@@ -16,14 +16,26 @@ export enum KeyAction {
 
 export class KeyboardHandler extends EventEmitter {
   private isListening = false;
+  private _handleKeyPress: (data: Buffer) => void
 
-  constructor() {
+  constructor(
+    private debug = false
+  ) {
     super();
-    this.handleKeyPress = this.handleKeyPress.bind(this);
+    this._handleKeyPress = this.handleKeyPress.bind(this);
+  }
+
+
+  private debugLog(...args: any[]) {
+    if (this.debug) {
+      console.log('[KeyboardHandler]', ...args);
+    }
   }
 
   private handleKeyPress(data: Buffer): void {
     const key = data.toString().toLowerCase();
+
+    this.debugLog('key pressed: ', key)
 
     switch (key) {
       case ' ':
@@ -63,10 +75,11 @@ export class KeyboardHandler extends EventEmitter {
   }
 
   start(): void {
+    this.debugLog('start')
     if (!this.isListening) {
       process.stdin.setRawMode(true);
       process.stdin.resume();
-      process.stdin.on('data', this.handleKeyPress);
+      process.stdin.on('data', this._handleKeyPress);
       this.isListening = true;
     }
   }
@@ -75,7 +88,7 @@ export class KeyboardHandler extends EventEmitter {
     if (this.isListening) {
       process.stdin.setRawMode(false);
       process.stdin.pause();
-      process.stdin.removeListener('data', this.handleKeyPress);
+      process.stdin.removeListener('data', this._handleKeyPress);
       this.isListening = false;
     }
   }
