@@ -1,12 +1,13 @@
 import type { AnkiService } from "../anki";
 import type { OpenAIService } from "../openai";
 import type { ContentManager } from "../content-manager";
-import type { DynamicContent, Card } from "../../config/types";
+import type { DynamicContent, Card, GakuonConfig } from "../../config/types";
 
 export interface ServerDependencies {
   ankiService: AnkiService;
   openaiService: OpenAIService;
   contentManager: ContentManager;
+  config: GakuonConfig;
   debug?: boolean;
 }
 

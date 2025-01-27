@@ -8,6 +8,7 @@ import type {
   AnswerRequest,
 } from "./types";
 import { PromptError } from "../../config/types";
+import { findDeckConfig } from "../../config/loader";
 
 export function createServer(deps: ServerDependencies) {
   const app = express();
@@ -69,38 +70,41 @@ export function createServer(deps: ServerDependencies) {
     }
   });
 
-  app.get("/api/cards/:id", async (req, res: Response, next) => {
-    try {
-      const cardId = Number.parseInt(req.params.id, 10);
-      const [card] = await deps.ankiService.getCardsInfo([cardId]);
+  app.get(
+    "/api/cards/:id",
+    async (req: Request, res: Response, next: NextFunction) => {
+      try {
+        const cardId = Number.parseInt(req.params.id, 10);
+        const [card] = await deps.ankiService.getCardsInfo([cardId]);
 
-      if (!card) {
-        return res.status(404).json({ error: "Card not found" });
+        if (!card) {
+          return res.status(404).json({ error: "Card not found" });
+        }
+
+        const metadata = await deps.ankiService.getCardMetadata(card);
+
+        const response: CardResponse = {
+          id: card.cardId,
+          content: metadata.content || {},
+          audioUrls: Object.values(metadata.audio || {}),
+          queue: card.queue,
+          due: card.due,
+          interval: card.interval,
+          factor: card.factor,
+          reps: card.reps,
+          lapses: card.lapses,
+        };
+
+        res.json(response);
+      } catch (err) {
+        next(err);
       }
-
-      const metadata = await deps.ankiService.getCardMetadata(card);
-
-      const response: CardResponse = {
-        id: card.cardId,
-        content: metadata.content || {},
-        audioUrls: Object.values(metadata.audio || {}),
-        queue: card.queue,
-        due: card.due,
-        interval: card.interval,
-        factor: card.factor,
-        reps: card.reps,
-        lapses: card.lapses,
-      };
-
-      res.json(response);
-    } catch (err) {
-      next(err);
-    }
-  });
+    },
+  );
 
   app.post("/api/cards/:id/answer", async (req, res: Response, next) => {
     try {
-      const cardId = parseInt(req.params.id, 10);
+      const cardId = Number.parseInt(req.params.id, 10);
       const { ease } = req.body as AnswerRequest;
 
       if (ease < 1 || ease > 4) {
@@ -128,7 +132,7 @@ export function createServer(deps: ServerDependencies) {
       }
 
       // Find deck config for the card
-      const config = await deps.ankiService.getDeckConfig(card.deckName);
+      const config = findDeckConfig(card.deckName, deps.config.decks);
       if (!config) {
         return res.status(404).json({ error: "Deck configuration not found" });
       }
