@@ -10,13 +10,20 @@
     "start": "bun run src/index.ts",
     "build": "bun build src/index.ts --target=node --outfile dist/gakuon",
     "prepublishOnly": "bun run build",
-    "fmt": "bunx biome format --write ./src"
+    "fmt": "bunx biome format --write ./src",
+    "test": "jest",
+    "test:watch": "jest --watch"
   },
   "devDependencies": {
     "@biomejs/biome": "1.9.4",
     "@types/bun": "latest",
     "@types/cors": "^2.8.17",
-    "@types/express": "^5.0.0"
+    "@types/express": "^5.0.0",
+    "@types/jest": "^29.5.14",
+    "@types/supertest": "^6.0.2",
+    "jest": "^29.7.0",
+    "supertest": "^7.0.0",
+    "ts-jest": "^29.2.5"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
