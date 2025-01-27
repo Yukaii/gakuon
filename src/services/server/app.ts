@@ -1,6 +1,6 @@
 import express from "express";
 import cors from "cors";
-import type { Request, Response, NextFunction } from "express";
+import type { Request, Response, NextFunction, RequestHandler } from "express";
 import type {
   ServerDependencies,
   APIError,
@@ -70,8 +70,7 @@ export function createServer(deps: ServerDependencies) {
     }
   });
 
-  app.get(
-    "/api/cards/:id",
+  const getCardDetails =
     async (req: Request, res: Response, next: NextFunction) => {
       try {
         const cardId = Number.parseInt(req.params.id, 10);
@@ -99,10 +98,13 @@ export function createServer(deps: ServerDependencies) {
       } catch (err) {
         next(err);
       }
-    },
+    };
+  app.get(
+    "/api/cards/:id",
+    getCardDetails as unknown as RequestHandler,
   );
 
-  app.post("/api/cards/:id/answer", async (req, res: Response, next) => {
+  const submitCardAnswer = async (req: Request, res: Response, next: NextFunction) => {
     try {
       const cardId = Number.parseInt(req.params.id, 10);
       const { ease } = req.body as AnswerRequest;
@@ -120,9 +122,10 @@ export function createServer(deps: ServerDependencies) {
     } catch (err) {
       next(err);
     }
-  });
+  };
+  app.post("/api/cards/:id/answer", submitCardAnswer as unknown as RequestHandler);
 
-  app.post("/api/cards/:id/regenerate", async (req, res: Response, next) => {
+  const regenerateCardContent = async (req, res: Response, next) => {
     try {
       const cardId = Number.parseInt(req.params.id, 10);
       const [card] = await deps.ankiService.getCardsInfo([cardId]);
@@ -138,12 +141,11 @@ export function createServer(deps: ServerDependencies) {
       }
 
       // Generate new content
-      const { content, audioFiles } =
-        await deps.contentManager.getOrGenerateContent(
-          card,
-          config,
-          true, // force regenerate
-        );
+      const { content, audioFiles } = await deps.contentManager.getOrGenerateContent(
+        card,
+        config,
+        true
+      );
 
       // Wait for audio generation to complete
       await Promise.all(audioFiles);
@@ -152,13 +154,13 @@ export function createServer(deps: ServerDependencies) {
     } catch (err) {
       next(err);
     }
-  });
+  };
+  app.post("/api/cards/:id/regenerate", regenerateCardContent as unknown as RequestHandler);
 
-  // Audio file serving
-  app.get("/api/audio/:filename", async (req, res: Response, next) => {
+  const serveAudioFile = async (req, res: Response, next) => {
     try {
       const audioPath = await deps.ankiService.retrieveMediaFile(
-        req.params.filename,
+        req.params.filename
       );
       if (!audioPath) {
         return res.status(404).json({ error: "Audio file not found" });
@@ -167,9 +169,11 @@ export function createServer(deps: ServerDependencies) {
     } catch (err) {
       next(err);
     }
-  });
+  };
+  // Audio file serving
+  app.get("/api/audio/:filename", serveAudioFile as unknown as RequestHandler);
 
-  app.use(errorHandler);
+  app.use(errorHandler as unknown as RequestHandler);
 
   return app;
 }
