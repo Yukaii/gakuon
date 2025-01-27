@@ -233,8 +233,7 @@ export class AnkiService {
     try {
       const metadata = JSON.parse(commentField.value);
       return Boolean(
-        metadata.gakuon?.lastGenerated &&
-          metadata.gakuon.sentence,
+        metadata.gakuon?.lastGenerated && metadata.gakuon.sentence,
       );
     } catch {
       return false;

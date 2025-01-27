@@ -1,7 +1,12 @@
 import express from "express";
 import cors from "cors";
 import type { Request, Response, NextFunction } from "express";
-import type { ServerDependencies, APIError, CardResponse, AnswerRequest } from "./types";
+import type {
+  ServerDependencies,
+  APIError,
+  CardResponse,
+  AnswerRequest,
+} from "./types";
 import { PromptError } from "../../config/types";
 
 export function createServer(deps: ServerDependencies) {
@@ -57,9 +62,7 @@ export function createServer(deps: ServerDependencies) {
 
   app.get("/api/decks/:name/cards", async (req, res: Response, next) => {
     try {
-      const cards = await deps.ankiService.getDueCardsInfo(
-        req.params.name,
-      );
+      const cards = await deps.ankiService.getDueCardsInfo(req.params.name);
       res.json(cards);
     } catch (err) {
       next(err);
@@ -131,11 +134,12 @@ export function createServer(deps: ServerDependencies) {
       }
 
       // Generate new content
-      const { content, audioFiles } = await deps.contentManager.getOrGenerateContent(
-        card,
-        config,
-        true // force regenerate
-      );
+      const { content, audioFiles } =
+        await deps.contentManager.getOrGenerateContent(
+          card,
+          config,
+          true, // force regenerate
+        );
 
       // Wait for audio generation to complete
       await Promise.all(audioFiles);
@@ -149,7 +153,9 @@ export function createServer(deps: ServerDependencies) {
   // Audio file serving
   app.get("/api/audio/:filename", async (req, res: Response, next) => {
     try {
-      const audioPath = await deps.ankiService.retrieveMediaFile(req.params.filename);
+      const audioPath = await deps.ankiService.retrieveMediaFile(
+        req.params.filename,
+      );
       if (!audioPath) {
         return res.status(404).json({ error: "Audio file not found" });
       }

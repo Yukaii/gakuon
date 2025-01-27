@@ -30,7 +30,7 @@ export async function serve(options: ServeOptions = {}) {
     debug,
   });
 
-  let server: Server | null = null
+  let server: Server | null = null;
 
   // Handle shutdown gracefully
   const shutdown = () => {
