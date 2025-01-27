@@ -95,8 +95,6 @@ export function createServer(deps: ServerDependencies) {
       const { metadata, content, audioFiles } =
         await deps.contentManager.getExistingContent(card);
 
-      console.log(metadata, "metadata");
-
       const response: CardResponse = {
         id: card.cardId,
         content: content || {},
