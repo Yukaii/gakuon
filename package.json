@@ -14,7 +14,9 @@
   },
   "devDependencies": {
     "@biomejs/biome": "1.9.4",
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.0"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
@@ -22,7 +24,9 @@
   "dependencies": {
     "@iarna/toml": "^2.2.5",
     "commander": "^13.1.0",
+    "cors": "^2.8.5",
     "enquirer": "^2.4.1",
+    "express": "^4.21.2",
     "openai": "^4.80.1"
   },
   "files": [
