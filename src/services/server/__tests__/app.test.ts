@@ -25,6 +25,7 @@ const mockOpenAIService = {
 
 const mockContentManager = {
   getOrGenerateContent: jest.fn(),
+  getExistingContent: jest.fn(),
 };
 
 const mockConfig = {
@@ -124,6 +125,10 @@ describe("Gakuon API", () => {
         content: { sentence: "Test sentence" },
         audio: { sentence: "[sound:test.mp3]" },
       });
+      mockContentManager.getExistingContent.mockResolvedValue({
+        content: { sentence: "Test sentence" },
+        audioFiles: [Promise.resolve("[sound:test.mp3]")],
+      })
 
       const response = await request(app).get("/api/cards/1234");
 

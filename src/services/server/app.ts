@@ -76,12 +76,12 @@ export function createServer(deps: ServerDependencies) {
         return res.status(404).json({ error: "Card not found" });
       }
 
-      const metadata = await deps.ankiService.getCardMetadata(card);
+      const metadata = await deps.contentManager.getExistingContent(card);
 
       const response: CardResponse = {
         id: card.cardId,
         content: metadata.content || {},
-        audioUrls: Object.values(metadata.audio || {}),
+        audioUrls: await Promise.all(metadata.audioFiles),
         queue: card.queue,
         due: card.due,
         interval: card.interval,

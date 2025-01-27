@@ -51,7 +51,7 @@ export class ContentManager {
     return this.generateAndStoreContent(card, deckConfig);
   }
 
-  private async getExistingContent(card: Card) {
+  async getExistingContent(card: Card) {
     const metadata = await this.ankiService.getCardMetadata(card);
 
     // Get stored content

@@ -28,6 +28,7 @@ export async function serve(options: ServeOptions = {}) {
     openaiService,
     contentManager,
     debug,
+    config,
   });
 
   let server: Server | null = null;
