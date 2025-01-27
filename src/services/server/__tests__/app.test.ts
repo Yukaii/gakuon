@@ -5,6 +5,7 @@ import type { Card, DeckConfig, GakuonConfig } from "../../../config/types";
 import type { AnkiService } from "../../anki";
 import type { OpenAIService } from "../../openai";
 import type { ContentManager } from "../../content-manager";
+import { DEFAULT_CONFIG } from "../../../config/loader";
 
 // Mock dependencies
 const mockAnkiService = {
@@ -209,6 +210,108 @@ describe("Gakuon API", () => {
       const response = await request(app).get("/api/audio/missing.mp3");
 
       expect(response.status).toBe(404);
+    });
+  });
+
+  describe("GET /api/decks/:name/config", () => {
+    it("should return matched deck config", async () => {
+      const mockConfigWithPattern: GakuonConfig = {
+        ...DEFAULT_CONFIG,
+        decks: [
+          {
+            name: "Test Deck Config",
+            pattern: "^Test Deck$",
+            prompt: "test prompt",
+            fields: {
+              front: "Front",
+              back: "Back",
+            },
+            responseFields: {
+              sentence: {
+                description: "Sentence",
+                required: true,
+                audio: true,
+              },
+            },
+          },
+          {
+            name: "Japanese prompt",
+            pattern: "^Japanese::.*$",
+            prompt: "japanese prompt",
+            fields: { word: "Word" },
+            responseFields: {
+              sentence: {
+                description: "Japanese Sentence",
+                required: true,
+                audio: true,
+              },
+            },
+          },
+        ],
+      };
+
+      const appWithConfig = createServer({
+        ...deps,
+        config: mockConfigWithPattern,
+      });
+
+      // Test exact match
+      const response1 = await request(appWithConfig).get(
+        "/api/decks/Test%20Deck/config",
+      );
+
+      expect(response1.status).toBe(200);
+      expect(response1.body).toEqual({
+        config: {
+          name: "Test Deck Config",
+          pattern: "^Test Deck$",
+          prompt: "test prompt",
+          fields: {
+            front: "Front",
+            back: "Back",
+          },
+          responseFields: {
+            sentence: {
+              description: "Sentence",
+              required: true,
+              audio: true,
+            },
+          },
+        },
+      });
+
+      // Test pattern match
+      const response2 = await request(appWithConfig).get(
+        "/api/decks/Japanese::N5/config",
+      );
+
+      expect(response2.status).toBe(200);
+      expect(response2.body).toEqual({
+        config: {
+          name: "Japanese prompt",
+          pattern: "^Japanese::.*$",
+          prompt: "japanese prompt",
+          fields: { word: "Word" },
+          responseFields: {
+            sentence: {
+              description: "Japanese Sentence",
+              required: true,
+              audio: true,
+            },
+          },
+        },
+      });
+    });
+
+    it("should return 404 for non-existent deck config", async () => {
+      const response = await request(app).get(
+        "/api/decks/NonExistent%20Deck/config",
+      );
+
+      expect(response.status).toBe(404);
+      expect(response.body).toEqual({
+        error: "Deck configuration not found",
+      });
     });
   });
 });

@@ -180,6 +180,31 @@ export function createServer(deps: ServerDependencies) {
   // Audio file serving
   app.get("/api/audio/:filename", serveAudioFile as unknown as RequestHandler);
 
+  const getDeckConfig = async (
+    req: Request,
+    res: Response,
+    next: NextFunction,
+  ) => {
+    try {
+      const deckName = req.params.name;
+      const config = findDeckConfig(deckName, deps.config.decks);
+
+      if (!config) {
+        return res.status(404).json({ error: "Deck configuration not found" });
+      }
+
+      res.json({
+        config,
+      });
+    } catch (err) {
+      next(err);
+    }
+  };
+  app.get(
+    "/api/decks/:name/config",
+    getDeckConfig as unknown as RequestHandler,
+  );
+
   app.use(errorHandler as unknown as RequestHandler);
 
   return app;

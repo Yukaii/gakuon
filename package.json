@@ -15,7 +15,8 @@
     "test:watch": "jest --watch",
     "dev:client": "vite",
     "build:client": "vite build",
-    "preview:client": "vite preview"
+    "preview:client": "vite preview",
+    "lint": "biome lint --write ./src"
   },
   "devDependencies": {
     "@biomejs/biome": "1.9.4",

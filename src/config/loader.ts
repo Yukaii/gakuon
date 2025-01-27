@@ -1,7 +1,7 @@
 import { parse, stringify } from "@iarna/toml";
-import { existsSync, readFileSync, writeFileSync } from "fs";
-import { join } from "path";
-import { homedir } from "os";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { join } from "node:path";
+import { homedir } from "node:os";
 import {
   type GakuonConfig,
   type DeckConfig,
@@ -11,7 +11,7 @@ import {
 } from "./types";
 import { interpolateEnvVars } from "../utils/path";
 
-const DEFAULT_CONFIG: GakuonConfig = {
+export const DEFAULT_CONFIG: GakuonConfig = {
   global: {
     ankiHost: "http://localhost:8765",
     openaiApiKey: "${OPENAI_API_KEY}",
