@@ -90,12 +90,9 @@ describe("Gakuon API", () => {
       const response = await request(app).get("/api/decks");
 
       expect(response.status).toBe(200);
-      expect(response.body).toEqual([
-        {
-          name: "Test Deck",
-          dueCount: 3,
-        },
-      ]);
+      expect(response.body).toEqual({
+        decks: ["Test Deck"],
+      });
     });
 
     it("should handle errors", async () => {

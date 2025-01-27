@@ -45,17 +45,10 @@ export function createServer(deps: ServerDependencies) {
   // API Routes
   app.get("/api/decks", async (_req, res: Response, next) => {
     try {
-      const deckNames = await deps.ankiService.getDeckNames();
-      const decks = await Promise.all(
-        deckNames.map(async (name) => {
-          const cards = await deps.ankiService.findCards(name);
-          return {
-            name,
-            dueCount: cards.length,
-          };
-        }),
-      );
-      res.json(decks);
+      const decks = await deps.ankiService.getDeckNames();
+      res.json({
+        decks: decks,
+      });
     } catch (err) {
       next(err);
     }
