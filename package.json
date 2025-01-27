@@ -10,11 +10,30 @@
     "start": "bun run src/index.ts",
     "build": "bun build src/index.ts --target=node --outfile dist/gakuon",
     "prepublishOnly": "bun run build",
-    "fmt": "bunx biome format --write ./src"
+    "fmt": "bunx biome format --write ./src",
+    "test": "jest",
+    "test:watch": "jest --watch",
+    "dev:client": "vite",
+    "build:client": "vite build",
+    "preview:client": "vite preview"
   },
   "devDependencies": {
     "@biomejs/biome": "1.9.4",
-    "@types/bun": "latest"
+    "@types/bun": "latest",
+    "@types/cors": "^2.8.17",
+    "@types/express": "^5.0.0",
+    "@types/jest": "^29.5.14",
+    "@types/react": "^19.0.8",
+    "@types/react-dom": "^19.0.3",
+    "@types/supertest": "^6.0.2",
+    "@vitejs/plugin-react": "^4.3.4",
+    "autoprefixer": "^10.4.20",
+    "jest": "^29.7.0",
+    "postcss": "^8.5.1",
+    "supertest": "^7.0.0",
+    "tailwindcss": "^4.0.0",
+    "ts-jest": "^29.2.5",
+    "vite": "^6.0.11"
   },
   "peerDependencies": {
     "typescript": "^5.0.0"
@@ -22,8 +41,12 @@
   "dependencies": {
     "@iarna/toml": "^2.2.5",
     "commander": "^13.1.0",
+    "cors": "^2.8.5",
     "enquirer": "^2.4.1",
-    "openai": "^4.80.1"
+    "express": "^4.21.2",
+    "openai": "^4.80.1",
+    "react": "^19.0.0",
+    "react-dom": "^19.0.0"
   },
   "files": [
     "dist",

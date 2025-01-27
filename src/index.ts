@@ -2,6 +2,7 @@
 import { Command } from "commander";
 import { learn } from "./commands/learn";
 import { init } from "./commands/init";
+import { serve } from "./commands/serve";
 import { BANNER } from "./utils/banner";
 
 const program = new Command();
@@ -25,5 +26,12 @@ program
   .description("Initialize deck configuration interactively")
   .option("-d, --debug", "Enable debug mode")
   .action(init);
+
+program
+  .command("serve")
+  .description("Start the Gakuon HTTP server")
+  .option("-p, --port <number>", "Port to listen on", "4989")
+  .option("-d, --debug", "Enable debug mode")
+  .action(serve);
 
 program.parse();
