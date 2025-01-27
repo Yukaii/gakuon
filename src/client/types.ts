@@ -18,6 +18,20 @@ export interface Card {
   lapses: number;
 }
 
+export interface DeckConfigResponse {
+  config: {
+    name: string;
+    pattern?: string;
+    prompt: string;
+    fields: Record<string, string>;
+    responseFields: Record<string, {
+      description: string;
+      required: boolean;
+      audio?: boolean;
+    }>;
+  };
+}
+
 export interface CardAnswer {
   ease: number;
 }
