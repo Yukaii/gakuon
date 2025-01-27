@@ -9,9 +9,11 @@
   "scripts": {
     "start": "bun run src/index.ts",
     "build": "bun build src/index.ts --target=node --outfile dist/gakuon",
-    "prepublishOnly": "bun run build"
+    "prepublishOnly": "bun run build",
+    "fmt": "bunx biome format --write ./src"
   },
   "devDependencies": {
+    "@biomejs/biome": "1.9.4",
     "@types/bun": "latest"
   },
   "peerDependencies": {
