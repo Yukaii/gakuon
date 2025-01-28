@@ -1,7 +1,7 @@
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useState } from "react";
 import useSWR from "swr";
-import { fetchDecks, fetchDeckCards } from "../api";
+import { fetchDecks, fetchDeckCards, answerCard, regenerateCard } from "../api";
 
 export function DeckView() {
   const { deckName } = useParams();
@@ -9,7 +9,8 @@ export function DeckView() {
 
   const { data: decksData } = useSWR("/api/decks", fetchDecks);
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
-  const { data: cards } = useSWR(
+  const [isRegenerating, setIsRegenerating] = useState(false);
+  const { data: cards, mutate: mutateCards } = useSWR(
     deckName ? `/api/decks/${deckName}/cards` : null,
     () => fetchDeckCards(deckName!),
   );
@@ -35,7 +36,30 @@ export function DeckView() {
     }
   };
 
-  return (
+  const handleAnswer = async (ease: number) => {
+    if (!cards || cards.length === 0) return;
+
+    try {
+      await answerCard(cards[currentCardIndex].cardId, { ease });
+      handleNextCard();
+    } catch (err) {
+      console.error("Failed to submit answer:", err);
+    }
+  };
+
+  const handleRegenerate = async () => {
+    if (!cards || cards.length === 0 || isRegenerating) return;
+
+    try {
+      setIsRegenerating(true);
+      await regenerateCard(cards[currentCardIndex].cardId);
+      await mutateCards();
+    } catch (err) {
+      console.error("Failed to regenerate card:", err);
+    } finally {
+      setIsRegenerating(false);
+    }
+  };
     <div>
       <select
         value={deckName || ""}
@@ -83,7 +107,34 @@ export function DeckView() {
                 Next
               </button>
             </div>
-          </div>
+            <div className="flex gap-2 mt-4">
+              {[
+                { ease: 1, label: "Again", color: "red" },
+                { ease: 2, label: "Hard", color: "yellow" },
+                { ease: 3, label: "Good", color: "green" },
+                { ease: 4, label: "Easy", color: "blue" },
+              ].map(({ ease, label, color }) => (
+                <button
+                  key={ease}
+                  type="button"
+                  onClick={() => handleAnswer(ease)}
+                  className={`bg-${color}-500 text-white px-4 py-2 rounded`}
+                >
+                  {label}
+                </button>
+              ))}
+            </div>
+
+            <button
+              type="button"
+              onClick={handleRegenerate}
+              disabled={isRegenerating}
+              className={`mt-4 ${
+                isRegenerating ? "bg-gray-300" : "bg-gray-500"
+              } text-white px-4 py-2 rounded`}
+            >
+              {isRegenerating ? "Regenerating..." : "Regenerate"}
+            </button>
         </div>
       )}
     </div>
