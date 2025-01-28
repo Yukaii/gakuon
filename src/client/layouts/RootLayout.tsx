@@ -11,6 +11,7 @@ export function RootLayout() {
         <h1 className="text-2xl font-bold dark:text-white">Gakuon Web</h1>
         <div className="flex gap-2">
           <button
+            type="button"
             onClick={() => setTheme("system")}
             className={`p-2 rounded-lg ${
               theme === "system"
@@ -22,6 +23,7 @@ export function RootLayout() {
             <Desktop size={20} weight="bold" />
           </button>
           <button
+            type="button"
             onClick={() => setTheme("light")}
             className={`p-2 rounded-lg ${
               theme === "light"
@@ -33,6 +35,7 @@ export function RootLayout() {
             <Sun size={20} weight="bold" />
           </button>
           <button
+            type="button"
             onClick={() => setTheme("dark")}
             className={`p-2 rounded-lg ${
               theme === "dark"
