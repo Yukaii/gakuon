@@ -8,6 +8,7 @@ import {
   ArrowLeft,
   ArrowRight,
   ArrowCounterClockwise,
+  Gear,
 } from "@phosphor-icons/react";
 import useSWR from "swr";
 import {
@@ -19,7 +20,7 @@ import {
   regenerateCard,
 } from "../api";
 
-const API_BASE = "http://localhost:4989";
+import { getApiBase, setApiBase, getDefaultApiBase } from "../config";
 
 export function DeckView() {
   const { deckName } = useParams();
@@ -29,6 +30,8 @@ export function DeckView() {
   const { data: decksData } = useSWR("/api/decks", fetchDecks);
   const initialCardId = new URLSearchParams(location.search).get("cardId");
   const [isRegenerating, setIsRegenerating] = useState(false);
+  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [newApiBase, setNewApiBase] = useState(getApiBase());
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentAudioIndex, setCurrentAudioIndex] = useState(0);
   const [currentTime, setCurrentTime] = useState(0);
@@ -327,7 +330,7 @@ export function DeckView() {
                       }}
                     >
                       <source
-                        src={`${API_BASE}/api/audio/${url.replace("[sound:", "").replace("]", "")}`}
+                        src={`${getApiBase()}/audio/${url.replace("[sound:", "").replace("]", "")}`}
                       />
                     </audio>
                   ))}
@@ -394,6 +397,65 @@ export function DeckView() {
               ))}
             </div>
 
+          </div>
+        </div>
+      )}
+
+      {/* Settings Button */}
+      <button
+        onClick={() => setIsSettingsOpen(true)}
+        className="fixed bottom-4 right-4 bg-gray-500 text-white p-2 rounded-full hover:bg-gray-600 transition"
+        title="Settings"
+      >
+        <Gear size={24} weight="bold" />
+      </button>
+
+      {/* Settings Modal */}
+      {isSettingsOpen && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
+          <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl max-w-md w-full">
+            <h2 className="text-xl font-bold mb-4 dark:text-white">Settings</h2>
+            
+            <div className="mb-4">
+              <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+                API Base URL
+              </label>
+              <input
+                type="text"
+                value={newApiBase}
+                onChange={(e) => setNewApiBase(e.target.value)}
+                placeholder={getDefaultApiBase()}
+                className="w-full p-2 border rounded dark:bg-gray-700 dark:border-gray-600 dark:text-white"
+              />
+            </div>
+
+            <div className="flex justify-end gap-2">
+              <button
+                onClick={() => {
+                  setApiBase(null); // Reset to default
+                }}
+                className="px-4 py-2 text-sm bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white rounded hover:bg-gray-300 dark:hover:bg-gray-600"
+              >
+                Reset to Default
+              </button>
+              <button
+                onClick={() => {
+                  if (newApiBase !== getApiBase()) {
+                    setApiBase(newApiBase);
+                  }
+                  setIsSettingsOpen(false);
+                }}
+                className="px-4 py-2 text-sm bg-blue-500 text-white rounded hover:bg-blue-600"
+              >
+                Save
+              </button>
+              <button
+                onClick={() => setIsSettingsOpen(false)}
+                className="px-4 py-2 text-sm bg-gray-500 text-white rounded hover:bg-gray-600"
+              >
+                Cancel
+              </button>
+            </div>
           </div>
         </div>
       )}

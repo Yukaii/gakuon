@@ -5,25 +5,24 @@ import type {
   DeckConfigResponse,
   CardWithMeta,
 } from "./types";
-
-const API_BASE = "http://localhost:4989/api";
+import { getApiBase } from "./config";
 
 export async function fetchDecks(): Promise<DecksResponse> {
-  const response = await fetch(`${API_BASE}/decks`);
+  const response = await fetch(`${getApiBase()}/decks`);
   if (!response.ok) throw new Error("Failed to fetch decks");
   return response.json();
 }
 
 export async function fetchDeckCards(deckName: string): Promise<Card[]> {
   const response = await fetch(
-    `${API_BASE}/decks/${encodeURIComponent(deckName)}/cards`,
+    `${getApiBase()}/decks/${encodeURIComponent(deckName)}/cards`,
   );
   if (!response.ok) throw new Error("Failed to fetch deck cards");
   return response.json();
 }
 
 export async function fetchCard(cardId: number): Promise<CardWithMeta> {
-  const response = await fetch(`${API_BASE}/cards/${cardId}`);
+  const response = await fetch(`${getApiBase()}/cards/${cardId}`);
   if (!response.ok) throw new Error("Failed to fetch card");
   return response.json();
 }
@@ -32,7 +31,7 @@ export async function answerCard(
   cardId: number,
   answer: CardAnswer,
 ): Promise<{ success: boolean }> {
-  const response = await fetch(`${API_BASE}/cards/${cardId}/answer`, {
+  const response = await fetch(`${getApiBase()}/cards/${cardId}/answer`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(answer),
@@ -44,7 +43,7 @@ export async function answerCard(
 export async function regenerateCard(
   cardId: number,
 ): Promise<{ content: Record<string, string> }> {
-  const response = await fetch(`${API_BASE}/cards/${cardId}/regenerate`, {
+  const response = await fetch(`${getApiBase()}/cards/${cardId}/regenerate`, {
     method: "POST",
   });
   if (!response.ok) throw new Error("Failed to regenerate card");
@@ -55,7 +54,7 @@ export async function fetchDeckConfig(
   deckName: string,
 ): Promise<DeckConfigResponse> {
   const response = await fetch(
-    `${API_BASE}/decks/${encodeURIComponent(deckName)}/config`,
+    `${getApiBase()}/decks/${encodeURIComponent(deckName)}/config`,
   );
   if (!response.ok) {
     if (response.status === 404) {
