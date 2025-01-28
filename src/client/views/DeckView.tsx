@@ -81,10 +81,18 @@ export function DeckView() {
   }, [cards, currentCardIndex]);
 
   useEffect(() => {
-    if (cardInfo && (!cardInfo.audioUrls || cardInfo.audioUrls.length === 0)) {
-      handleRegenerate();
-    }
-  }, [cardInfo]);
+    const updateCardInfo = async () => {
+      if (cardInfo && (!cardInfo.audioUrls || cardInfo.audioUrls.length === 0)) {
+        await handleRegenerate();
+        // Fetch updated card info after regeneration
+        if (cards && cards.length > 0) {
+          const updatedInfo = await fetchCard(cards[currentCardIndex].cardId);
+          setCardInfo(updatedInfo);
+        }
+      }
+    };
+    updateCardInfo();
+  }, [cardInfo, cards, currentCardIndex]);
 
   const handleNextCard = async () => {
     if (cards && currentCardIndex < cards.length - 1) {
@@ -115,6 +123,8 @@ export function DeckView() {
     try {
       setIsRegenerating(true);
       await regenerateCard(cards[currentCardIndex].cardId);
+      const updatedInfo = await fetchCard(cards[currentCardIndex].cardId);
+      setCardInfo(updatedInfo);
       await mutateCards();
     } catch (err) {
       console.error("Failed to regenerate card:", err);
