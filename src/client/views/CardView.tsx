@@ -1,14 +1,9 @@
 import { useParams, useNavigate } from "react-router-dom";
 import useSWR from "swr";
-import {
-  fetchCard,
-  fetchDeckConfig,
-  answerCard,
-  regenerateCard,
-} from "../api";
+import { fetchCard, fetchDeckConfig, answerCard, regenerateCard } from "../api";
 import { useState } from "react";
 
-const API_BASE = 'http://localhost:4989'
+const API_BASE = "http://localhost:4989";
 
 export function CardView() {
   const { deckName, cardId } = useParams();

@@ -1,7 +1,15 @@
-import { useParams, useNavigate, useLocation } from "react-router-dom";
-import { useState } from "react";
+import { useParams, useNavigate } from "react-router-dom";
+import { useState, useEffect } from "react";
 import useSWR from "swr";
-import { fetchDecks, fetchDeckCards, fetchCard, answerCard, regenerateCard } from "../api";
+import {
+  fetchDecks,
+  fetchDeckCards,
+  fetchCard,
+  answerCard,
+  regenerateCard,
+} from "../api";
+
+const API_BASE = "http://localhost:4989";
 
 export function DeckView() {
   const { deckName } = useParams();
@@ -86,15 +94,21 @@ export function DeckView() {
         <div className="grid gap-4">
           <h2 className="text-xl font-bold">Due Cards ({cards.length})</h2>
           <div className="card p-4 border rounded mb-4">
-            <h2 className="font-bold">Card #{cards[currentCardIndex].cardId}</h2>
+            <h2 className="font-bold">
+              Card #{cards[currentCardIndex].cardId}
+            </h2>
             {/* Display card details here */}
             <div className="mb-4">
               <h2 className="font-bold">Card Fields:</h2>
-              {Object.entries(cards[currentCardIndex].fields).map(([field, fieldData]) => (
-                <div key={field} className="mb-2">
-                  <strong>{field}: {fieldData.value}</strong>
-                </div>
-              ))}
+              {Object.entries(cards[currentCardIndex].fields).map(
+                ([field, fieldData]) => (
+                  <div key={field} className="mb-2">
+                    <strong>
+                      {field}: {fieldData.value}
+                    </strong>
+                  </div>
+                ),
+              )}
             </div>
 
             {cardInfo?.audioUrls?.length > 0 && (
@@ -102,7 +116,9 @@ export function DeckView() {
                 <h2 className="font-bold">Audio:</h2>
                 {cardInfo.audioUrls.map((url, index) => (
                   <audio key={index} controls className="w-full mb-2">
-                    <source src={`${API_BASE}/api/audio/${url.replace("[sound:", "").replace("]", "")}`} />
+                    <source
+                      src={`${API_BASE}/api/audio/${url.replace("[sound:", "").replace("]", "")}`}
+                    />
                   </audio>
                 ))}
               </div>
@@ -154,9 +170,9 @@ export function DeckView() {
             >
               {isRegenerating ? "Regenerating..." : "Regenerate"}
             </button>
+          </div>
         </div>
-      </div>
-    )}
+      )}
     </div>
-  )
+  );
 }
