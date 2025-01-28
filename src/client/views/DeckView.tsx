@@ -240,7 +240,7 @@ export function DeckView() {
                   </details>
                 </div>
 
-                <div className="mb-4 bg-gray-800 p-4 rounded-lg text-white">
+                <div className="mb-4 bg-blue-600 dark:bg-gray-800 p-4 rounded-lg text-white">
                   <div className="flex flex-col gap-4">
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
@@ -256,11 +256,11 @@ export function DeckView() {
 
                     <div
                       ref={progressBarRef}
-                      className="h-2 bg-gray-600 rounded-full cursor-pointer relative"
+                      className="h-2 bg-white/20 dark:bg-gray-600 rounded-full cursor-pointer relative"
                       onClick={handleProgressBarClick}
                     >
                       <div
-                        className="absolute h-full bg-blue-500 rounded-full"
+                        className="absolute h-full bg-white/50 dark:bg-blue-500 rounded-full"
                         style={{ width: `${(currentTime / duration) * 100}%` }}
                       />
                     </div>
@@ -274,7 +274,7 @@ export function DeckView() {
                             audioRefs.current[currentAudioIndex - 1]?.play();
                           }
                         }}
-                        className="text-white hover:text-blue-400 transition"
+                        className="text-white hover:text-white/70 dark:hover:text-blue-400 transition"
                         disabled={currentAudioIndex === 0}
                         title="Previous Track"
                       >
@@ -282,7 +282,7 @@ export function DeckView() {
                       </button>
                       <button
                         onClick={handlePlayPause}
-                        className="w-12 h-12 flex items-center justify-center bg-blue-500 rounded-full hover:bg-blue-600 transition transform hover:scale-105"
+                        className="w-12 h-12 flex items-center justify-center bg-white/25 dark:bg-blue-500 rounded-full hover:bg-white/40 dark:hover:bg-blue-600 transition transform hover:scale-105"
                         title={isPlaying ? "Pause" : "Play"}
                       >
                         {isPlaying ? (
