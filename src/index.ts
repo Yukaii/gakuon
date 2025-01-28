@@ -4,6 +4,14 @@ import { learn } from "./commands/learn";
 import { init } from "./commands/init";
 import { serve } from "./commands/serve";
 import { BANNER } from "./utils/banner";
+import { readFileSync } from "node:fs";
+import { join } from "node:path";
+import { fileURLToPath } from "node:url";
+
+const __dirname = fileURLToPath(new URL(".", import.meta.url));
+const pkg = JSON.parse(
+  readFileSync(join(__dirname, "..", "package.json"), "utf-8"),
+);
 
 const program = new Command();
 
@@ -12,7 +20,7 @@ console.log(BANNER);
 program
   .name("gakuon")
   .description("AI-Powered Audio Learning System for Anki")
-  .version("0.3.0");
+  .version(pkg.version);
 
 program
   .command("learn")
