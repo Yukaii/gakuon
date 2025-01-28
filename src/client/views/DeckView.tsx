@@ -200,11 +200,11 @@ export function DeckView() {
     }
   };
   return (
-    <div className="max-w-2xl mx-auto p-4 bg-white shadow-md rounded-lg">
+    <div className="max-w-2xl mx-auto p-4 bg-white dark:bg-gray-800 shadow-md rounded-lg dark:text-gray-100">
       <select
         value={deckName || ""}
         onChange={handleDeckSelect}
-        className="w-full p-2 mb-4 border rounded bg-gray-100"
+        className="w-full p-2 mb-4 border rounded bg-gray-100 dark:bg-gray-700 dark:border-gray-600 dark:text-white"
       >
         <option value="">Select a deck</option>
         {decksData?.decks.map((deck) => (
@@ -215,9 +215,9 @@ export function DeckView() {
       </select>
 
       {cards && cards.length > 0 && (
-        <div className="grid gap-4 bg-gray-50 p-4 rounded-lg shadow-inner">
+        <div className="grid gap-4 bg-gray-50 dark:bg-gray-700 p-4 rounded-lg shadow-inner">
           <h2 className="text-xl font-bold">Due Cards ({cards.length})</h2>
-          <div className="card p-4 border rounded mb-4 bg-gray-100 shadow">
+          <div className="card p-4 border dark:border-gray-600 rounded mb-4 bg-gray-100 dark:bg-gray-800 shadow">
             <h2 className="font-bold">
               Card #{cards[currentCardIndex].cardId}
             </h2>
