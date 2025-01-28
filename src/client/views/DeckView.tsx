@@ -1,4 +1,4 @@
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useState, useEffect } from "react";
 import useSWR from "swr";
 import {
@@ -13,10 +13,15 @@ const API_BASE = "http://localhost:4989";
 
 export function DeckView() {
   const { deckName } = useParams();
+  const location = useLocation();
   const navigate = useNavigate();
 
   const { data: decksData } = useSWR("/api/decks", fetchDecks);
-  const [currentCardIndex, setCurrentCardIndex] = useState(0);
+  const queryParams = new URLSearchParams(location.search);
+  const initialCardId = queryParams.get("cardId");
+  const [currentCardIndex, setCurrentCardIndex] = useState(
+    initialCardId ? cards?.findIndex(card => card.cardId === Number(initialCardId)) || 0 : 0
+  );
   const [cardInfo, setCardInfo] = useState(null);
   const [isRegenerating, setIsRegenerating] = useState(false);
   const { data: cards, mutate: mutateCards } = useSWR(
@@ -30,6 +35,8 @@ export function DeckView() {
       navigate(`/decks/${encodeURIComponent(selectedDeck)}`);
     } else {
       navigate("/decks");
+      const newCardId = cards[currentCardIndex - 1].cardId;
+      navigate(`/decks/${encodeURIComponent(deckName!)}?cardId=${newCardId}`);
     }
   };
 
