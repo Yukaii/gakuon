@@ -217,7 +217,7 @@ export function DeckView() {
       {cards && cards.length > 0 && (
         <div className="grid gap-4 bg-gray-50 dark:bg-gray-700 p-4 rounded-lg shadow-inner">
           <h2 className="text-xl font-bold">Due Cards ({cards.length})</h2>
-          <div className="card p-4 border dark:border-gray-600 rounded mb-4 bg-gray-100 dark:bg-gray-800 shadow">
+          <div className="card p-2 sm:p-4 border dark:border-gray-600 rounded mb-4 bg-gray-100 dark:bg-gray-800 shadow overflow-hidden">
             <h2 className="font-bold">
               Card #{cards[currentCardIndex].cardId}
             </h2>
