@@ -357,11 +357,11 @@ export function DeckView() {
             </div>
             <div className="flex gap-2 mt-4 justify-center">
               {[
-                { ease: 1, label: "Again", color: "red" },
-                { ease: 2, label: "Hard", color: "yellow" },
-                { ease: 3, label: "Good", color: "green" },
-                { ease: 4, label: "Easy", color: "blue" },
-              ].map(({ ease, label, color }) => (
+                { ease: 1, label: "Again", icon: "↺", color: "red" },
+                { ease: 2, label: "Hard", icon: "!", color: "yellow" },
+                { ease: 3, label: "Good", icon: "✓", color: "green" },
+                { ease: 4, label: "Easy", icon: "★", color: "blue" },
+              ].map(({ ease, label, icon, color }) => (
                 <button
                   key={ease}
                   type="button"
@@ -374,9 +374,11 @@ export function DeckView() {
                         : color === "green"
                           ? "bg-green-500 hover:bg-green-600"
                           : "bg-blue-500 hover:bg-blue-600"
-                  } text-white px-4 py-2 rounded-full shadow-md transition transform hover:scale-105`}
+                  } text-white px-3 sm:px-4 py-2 rounded-full shadow-md transition transform hover:scale-105`}
+                  title={label}
                 >
-                  {label}
+                  <span className="block sm:hidden">{icon}</span>
+                  <span className="hidden sm:block">{label}</span>
                 </button>
               ))}
             </div>
