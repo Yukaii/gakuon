@@ -41,11 +41,13 @@ export function DeckView() {
 
   const { data: deckConfig } = useSWR(
     deckName ? `/api/decks/${deckName}/config` : null,
+    // biome-ignore lint/style/noNonNullAssertion: <explanation>
     () => fetchDeckConfig(deckName!),
   );
 
   const { data: fetchedCards, mutate: mutateCards } = useSWR(
     deckName ? `/api/decks/${deckName}/cards` : null,
+    // biome-ignore lint/style/noNonNullAssertion: <explanation>
     () => fetchDeckCards(deckName!),
   );
 
@@ -84,7 +86,8 @@ export function DeckView() {
     } else {
       navigate("/decks");
       const newCardId = cards[currentCardIndex - 1].cardId;
-      navigate(`/decks/${encodeURIComponent(deckName!)}?cardId=${newCardId}`);
+      navigate(`/decks/${// biome-ignore lint/style/noNonNullAssertion: <explanation>
+encodeURIComponent(deckName!)}?cardId=${newCardId}`);
     }
   };
 
@@ -94,6 +97,7 @@ export function DeckView() {
     }
   }, [cardInfo]);
 
+  // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
   useEffect(() => {
     // Reset audio state when card changes
     setIsPlaying(false);
@@ -116,22 +120,22 @@ export function DeckView() {
       setDuration(audio.duration);
     };
 
-    audioRefs.current.forEach((audio) => {
+    for (const audio of audioRefs.current) {
       if (audio) {
         audio.addEventListener("ended", handleAudioEnd);
         audio.addEventListener("timeupdate", () => handleTimeUpdate(audio));
       }
-    });
+    };
 
     return () => {
-      audioRefs.current.forEach((audio) => {
+      for (const audio of audioRefs.current) {
         if (audio) {
           audio.removeEventListener("ended", handleAudioEnd);
           audio.removeEventListener("timeupdate", () =>
             handleTimeUpdate(audio),
           );
         }
-      });
+      }
     };
   }, [currentAudioIndex, cardInfo?.audioUrls]);
 
