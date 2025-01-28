@@ -48,7 +48,6 @@ export function DeckView() {
     return fetchedCards;
   }, [fetchedCards]);
 
-
   const [currentCardIndex, setCurrentCardIndex] = useState(
     initialCardId
       ? cards?.findIndex((card) => card.cardId === Number(initialCardId)) || 0
@@ -71,9 +70,9 @@ export function DeckView() {
       if (!cards || cards.length === 0) return;
 
       const cardInfos = await Promise.all(
-        cards.slice(currentCardIndex, currentCardIndex + 3).map((card) =>
-          fetchCard(card.cardId)
-        ),
+        cards
+          .slice(currentCardIndex, currentCardIndex + 3)
+          .map((card) => fetchCard(card.cardId)),
       );
 
       cardInfos.forEach(async (info, index) => {
@@ -158,15 +157,17 @@ export function DeckView() {
             {deckConfig && cardInfo && cardInfo?.audioUrls?.length > 0 && (
               <>
                 <div className="mb-4">
-                  <h2 className="font-bold">Generated Content:</h2>
-                  {Object.entries(deckConfig.config.responseFields).map(
-                    ([field, config]) => (
-                      <div key={field} className="mb-2">
-                        <strong>{field}:</strong>{" "}
-                        {cardInfo?.content?.[field] || "(Not generated)"}
-                      </div>
-                    ),
-                  )}
+                  <details>
+                    <summary className="font-bold">Generated Content</summary>
+                    {Object.entries(deckConfig.config.responseFields).map(
+                      ([field, config]) => (
+                        <div key={field} className="mb-2">
+                          <strong>{field}:</strong>{" "}
+                          {cardInfo?.content?.[field] || "(Not generated)"}
+                        </div>
+                      ),
+                    )}
+                  </details>
                 </div>
 
                 <div className="mb-4">
@@ -215,10 +216,10 @@ export function DeckView() {
                     color === "red"
                       ? "bg-red-500 hover:bg-red-600"
                       : color === "yellow"
-                      ? "bg-yellow-500 hover:bg-yellow-600"
-                      : color === "green"
-                      ? "bg-green-500 hover:bg-green-600"
-                      : "bg-blue-500 hover:bg-blue-600"
+                        ? "bg-yellow-500 hover:bg-yellow-600"
+                        : color === "green"
+                          ? "bg-green-500 hover:bg-green-600"
+                          : "bg-blue-500 hover:bg-blue-600"
                   } text-white px-4 py-2 rounded-full shadow-md transition transform hover:scale-105`}
                 >
                   {label}
