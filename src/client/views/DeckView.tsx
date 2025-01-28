@@ -17,8 +17,7 @@ export function DeckView() {
   const navigate = useNavigate();
 
   const { data: decksData } = useSWR("/api/decks", fetchDecks);
-  const queryParams = new URLSearchParams(location.search);
-  const initialCardId = queryParams.get("cardId");
+  const initialCardId = new URLSearchParams(location.search).get("cardId");
   const [currentCardIndex, setCurrentCardIndex] = useState(
     initialCardId ? cards?.findIndex(card => card.cardId === Number(initialCardId)) || 0 : 0
   );
