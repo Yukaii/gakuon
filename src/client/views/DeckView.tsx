@@ -272,12 +272,14 @@ export function DeckView() {
                         }}
                         className="text-white hover:text-blue-400 transition"
                         disabled={currentAudioIndex === 0}
+                        title="Previous Track"
                       >
                         <SkipBack size={24} weight="fill" />
                       </button>
                       <button
                         onClick={handlePlayPause}
                         className="w-12 h-12 flex items-center justify-center bg-blue-500 rounded-full hover:bg-blue-600 transition transform hover:scale-105"
+                        title={isPlaying ? "Pause" : "Play"}
                       >
                         {isPlaying ? <Pause size={24} weight="fill" /> : <Play size={24} weight="fill" />}
                       </button>
@@ -291,6 +293,7 @@ export function DeckView() {
                         }}
                         className="text-white hover:text-blue-400 transition"
                         disabled={currentAudioIndex === cardInfo.audioUrls.length - 1}
+                        title="Next Track"
                       >
                         <SkipForward size={24} weight="fill" />
                       </button>
@@ -325,6 +328,7 @@ export function DeckView() {
                 onClick={handlePreviousCard}
                 disabled={currentCardIndex === 0}
                 className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition"
+                title="Previous Card"
               >
                 <ArrowLeft size={20} weight="bold" className="mr-1" />
                 Previous
@@ -334,6 +338,7 @@ export function DeckView() {
                 onClick={handleNextCard}
                 disabled={currentCardIndex === cards.length - 1}
                 className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition"
+                title="Next Card"
               >
                 Next
                 <ArrowRight size={20} weight="bold" className="ml-1" />
@@ -372,6 +377,7 @@ export function DeckView() {
               className={`mt-4 ${
                 isRegenerating ? "bg-gray-300" : "bg-gray-500"
               } text-white px-4 py-2 rounded-full shadow-md hover:bg-gray-600 transition transform hover:scale-105`}
+              title="Regenerate card content and audio"
             >
               <div className="flex items-center justify-center gap-2">
                 <ArrowCounterClockwise size={20} weight="bold" />
