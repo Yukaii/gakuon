@@ -1,5 +1,14 @@
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useState, useEffect, useMemo, useRef } from "react";
+import { 
+  Play, 
+  Pause, 
+  SkipBack, 
+  SkipForward,
+  ArrowLeft,
+  ArrowRight,
+  ArrowCounterClockwise
+} from "@phosphor-icons/react";
 import useSWR from "swr";
 import {
   fetchDeckConfig,
@@ -264,13 +273,13 @@ export function DeckView() {
                         className="text-white hover:text-blue-400 transition"
                         disabled={currentAudioIndex === 0}
                       >
-                        ⏮️
+                        <SkipBack size={24} weight="fill" />
                       </button>
                       <button
                         onClick={handlePlayPause}
                         className="w-12 h-12 flex items-center justify-center bg-blue-500 rounded-full hover:bg-blue-600 transition transform hover:scale-105"
                       >
-                        {isPlaying ? "⏸️" : "▶️"}
+                        {isPlaying ? <Pause size={24} weight="fill" /> : <Play size={24} weight="fill" />}
                       </button>
                       <button
                         onClick={() => {
@@ -283,7 +292,7 @@ export function DeckView() {
                         className="text-white hover:text-blue-400 transition"
                         disabled={currentAudioIndex === cardInfo.audioUrls.length - 1}
                       >
-                        ⏭️
+                        <SkipForward size={24} weight="fill" />
                       </button>
                     </div>
                   </div>
@@ -317,6 +326,7 @@ export function DeckView() {
                 disabled={currentCardIndex === 0}
                 className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition"
               >
+                <ArrowLeft size={20} weight="bold" className="mr-1" />
                 Previous
               </button>
               <button
@@ -326,6 +336,7 @@ export function DeckView() {
                 className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition"
               >
                 Next
+                <ArrowRight size={20} weight="bold" className="ml-1" />
               </button>
             </div>
             <div className="flex gap-2 mt-4 justify-center">
@@ -362,7 +373,10 @@ export function DeckView() {
                 isRegenerating ? "bg-gray-300" : "bg-gray-500"
               } text-white px-4 py-2 rounded-full shadow-md hover:bg-gray-600 transition transform hover:scale-105`}
             >
-              {isRegenerating ? "Regenerating..." : "Regenerate"}
+              <div className="flex items-center justify-center gap-2">
+                <ArrowCounterClockwise size={20} weight="bold" />
+                {isRegenerating ? "Regenerating..." : "Regenerate"}
+              </div>
             </button>
           </div>
         </div>
