@@ -186,7 +186,15 @@ export function DeckView() {
                   key={ease}
                   type="button"
                   onClick={() => handleAnswer(ease)}
-                  className={`bg-${color}-500 text-white px-4 py-2 rounded-full shadow-md hover:bg-${color}-600 transition transform hover:scale-105`}
+                  className={`${
+                    color === "red"
+                      ? "bg-red-500 hover:bg-red-600"
+                      : color === "yellow"
+                      ? "bg-yellow-500 hover:bg-yellow-600"
+                      : color === "green"
+                      ? "bg-green-500 hover:bg-green-600"
+                      : "bg-blue-500 hover:bg-blue-600"
+                  } text-white px-4 py-2 rounded-full shadow-md transition transform hover:scale-105`}
                 >
                   {label}
                 </button>
