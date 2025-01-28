@@ -19,7 +19,10 @@ export function DeckView() {
 
   const { data: decksData } = useSWR("/api/decks", fetchDecks);
   const initialCardId = new URLSearchParams(location.search).get("cardId");
-  const [cardInfo, setCardInfo] = useState(null);
+  const { data: cardInfo, mutate: mutateCardInfo } = useSWR(
+    cards ? `/api/cards/${cards[currentCardIndex]?.cardId}` : null,
+    () => cards && fetchCard(cards[currentCardIndex].cardId)
+  );
   const [isRegenerating, setIsRegenerating] = useState(false);
   const { data: deckConfig } = useSWR(
     deckName ? `/api/decks/${deckName}/config` : null,
@@ -66,33 +69,10 @@ export function DeckView() {
   };
 
   useEffect(() => {
-    const fetchCurrentCard = async () => {
-      if (!cards || cards.length === 0) return;
-
-      const info = await fetchCard(cards[currentCardIndex].cardId);
-      setCardInfo(info);
-
-      if (!info.audioUrls || info.audioUrls.length === 0) {
-        await regenerateCard(cards[currentCardIndex].cardId);
-      }
-    };
-
-    fetchCurrentCard();
-  }, [cards, currentCardIndex]);
-
-  useEffect(() => {
-    const updateCardInfo = async () => {
-      if (cardInfo && (!cardInfo.audioUrls || cardInfo.audioUrls.length === 0)) {
-        await handleRegenerate();
-        // Fetch updated card info after regeneration
-        if (cards && cards.length > 0) {
-          const updatedInfo = await fetchCard(cards[currentCardIndex].cardId);
-          setCardInfo(updatedInfo);
-        }
-      }
-    };
-    updateCardInfo();
-  }, [cardInfo, cards, currentCardIndex]);
+    if (cardInfo && (!cardInfo.audioUrls || cardInfo.audioUrls.length === 0)) {
+      handleRegenerate();
+    }
+  }, [cardInfo]);
 
   const handleNextCard = async () => {
     if (cards && currentCardIndex < cards.length - 1) {
@@ -123,9 +103,10 @@ export function DeckView() {
     try {
       setIsRegenerating(true);
       await regenerateCard(cards[currentCardIndex].cardId);
-      const updatedInfo = await fetchCard(cards[currentCardIndex].cardId);
-      setCardInfo(updatedInfo);
-      await mutateCards();
+      await Promise.all([
+        mutateCardInfo(),
+        mutateCards()
+      ]);
     } catch (err) {
       console.error("Failed to regenerate card:", err);
     } finally {
