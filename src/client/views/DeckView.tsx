@@ -19,7 +19,7 @@ import {
   regenerateCard,
 } from "../api";
 
-const API_BASE = "http://localhost:4989";
+import { API_BASE } from "../config";
 
 export function DeckView() {
   const { deckName } = useParams();
@@ -327,7 +327,7 @@ export function DeckView() {
                       }}
                     >
                       <source
-                        src={`${API_BASE}/api/audio/${url.replace("[sound:", "").replace("]", "")}`}
+                        src={`${API_BASE}/audio/${url.replace("[sound:", "").replace("]", "")}`}
                       />
                     </audio>
                   ))}

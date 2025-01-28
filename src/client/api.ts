@@ -5,8 +5,7 @@ import type {
   DeckConfigResponse,
   CardWithMeta,
 } from "./types";
-
-const API_BASE = "http://localhost:4989/api";
+import { API_BASE } from "./config";
 
 export async function fetchDecks(): Promise<DecksResponse> {
   const response = await fetch(`${API_BASE}/decks`);
