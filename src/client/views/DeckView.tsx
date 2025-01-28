@@ -335,7 +335,7 @@ export function DeckView() {
               </>
             )}
 
-            <div className="flex gap-2 justify-between items-center mt-4">
+            <div className="flex gap-2 justify-center items-center mt-4">
               <button
                 type="button"
                 onClick={handlePreviousCard}
@@ -343,7 +343,18 @@ export function DeckView() {
                 className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition"
                 title="Previous Card"
               >
-                <ArrowLeft size={20} weight="bold" className="mr-1" />
+                <ArrowLeft size={20} weight="bold" />
+              </button>
+              <button
+                type="button"
+                onClick={handleRegenerate}
+                disabled={isRegenerating}
+                className={`${
+                  isRegenerating ? "bg-gray-300" : "bg-gray-500"
+                } text-white p-2 rounded hover:bg-gray-600 transition transform hover:scale-105`}
+                title="Regenerate card content and audio"
+              >
+                <ArrowCounterClockwise size={20} weight="bold" />
               </button>
               <button
                 type="button"
@@ -352,7 +363,7 @@ export function DeckView() {
                 className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition"
                 title="Next Card"
               >
-                <ArrowRight size={20} weight="bold" className="ml-1" />
+                <ArrowRight size={20} weight="bold" />
               </button>
             </div>
             <div className="flex gap-2 mt-4 justify-center">
@@ -383,20 +394,6 @@ export function DeckView() {
               ))}
             </div>
 
-            <button
-              type="button"
-              onClick={handleRegenerate}
-              disabled={isRegenerating}
-              className={`mt-4 ${
-                isRegenerating ? "bg-gray-300" : "bg-gray-500"
-              } text-white px-4 py-2 rounded-full shadow-md hover:bg-gray-600 transition transform hover:scale-105`}
-              title="Regenerate card content and audio"
-            >
-              <div className="flex items-center justify-center gap-2">
-                <ArrowCounterClockwise size={20} weight="bold" />
-                {isRegenerating ? "Regenerating..." : "Regenerate"}
-              </div>
-            </button>
           </div>
         </div>
       )}
