@@ -58,9 +58,9 @@ export function DeckView() {
             {/* Display card details here */}
             <div className="mb-4">
               <h2 className="font-bold">Card Fields:</h2>
-              {Object.entries(cards[currentCardIndex].fields).map(([field, value]) => (
+              {Object.entries(cards[currentCardIndex].fields).map(([field, fieldData]) => (
                 <div key={field} className="mb-2">
-                  <strong>{field}: {value}</strong>
+                  <strong>{field}: {fieldData.value}</strong>
                 </div>
               ))}
             </div>
