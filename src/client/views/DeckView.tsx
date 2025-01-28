@@ -396,7 +396,6 @@ export function DeckView() {
                 </button>
               ))}
             </div>
-
           </div>
         </div>
       )}
@@ -415,7 +414,7 @@ export function DeckView() {
         <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
           <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl max-w-md w-full">
             <h2 className="text-xl font-bold mb-4 dark:text-white">Settings</h2>
-            
+
             <div className="mb-4">
               <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
                 API Base URL

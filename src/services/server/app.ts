@@ -33,6 +33,15 @@ export function createServer(deps: ServerDependencies) {
   app.use(cors());
   app.use(express.json());
 
+  if (deps.serveClient) {
+    const clientPath = new URL("../../client/dist/client", import.meta.url)
+      .pathname;
+    app.use(express.static(clientPath));
+    app.get("/", (_req, res) =>
+      res.sendFile("index.html", { root: clientPath }),
+    );
+  }
+
   // Debug logging
   if (deps.debug) {
     app.use((req, _res, next) => {
