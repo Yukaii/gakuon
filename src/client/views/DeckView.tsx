@@ -1,5 +1,5 @@
 import { useParams, useNavigate, useLocation } from "react-router-dom";
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo } from "react";
 import useSWR from "swr";
 import {
   fetchDecks,
@@ -23,12 +23,23 @@ export function DeckView() {
   );
   const [cardInfo, setCardInfo] = useState(null);
   const [isRegenerating, setIsRegenerating] = useState(false);
-  const { data: cards, mutate: mutateCards } = useSWR(
+  const { data: fetchedCards, mutate: mutateCards } = useSWR(
     deckName ? `/api/decks/${deckName}/cards` : null,
     () => fetchDeckCards(deckName!),
   );
 
-  const handleDeckSelect = (event: React.ChangeEvent<HTMLSelectElement>) => {
+  const cards = useMemo(() => {
+    if (!fetchedCards) return null;
+
+    const storedCardIds = JSON.parse(localStorage.getItem("cardIds") || "[]");
+    const currentCardIds = fetchedCards.map(card => card.cardId);
+
+    if (JSON.stringify(storedCardIds) !== JSON.stringify(currentCardIds)) {
+      localStorage.setItem("cardIds", JSON.stringify(currentCardIds));
+    }
+
+    return fetchedCards;
+  }, [fetchedCards]);
     const selectedDeck = event.target.value;
     if (selectedDeck) {
       navigate(`/decks/${encodeURIComponent(selectedDeck)}`);
@@ -81,7 +92,7 @@ export function DeckView() {
       setIsRegenerating(false);
     }
   };
-  return (
+  return React.memo(() => (
     <div>
       <select
         value={deckName || ""}
