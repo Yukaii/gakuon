@@ -62,7 +62,7 @@ export function createServer(deps: ServerDependencies) {
       console.warn("Could not find client files to serve");
     } else {
       app.use(express.static(clientPath));
-      app.get("/", (_req, res) => 
+      app.get("/", (_req, res) =>
         res.sendFile("index.html", { root: clientPath })
       );
     }
