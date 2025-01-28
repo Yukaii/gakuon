@@ -1,4 +1,5 @@
-import { useParams, useNavigate } from "react-router-dom";
+import { useParams, useNavigate, useLocation } from "react-router-dom";
+import { useState } from "react";
 import useSWR from "swr";
 import { fetchDecks, fetchDeckCards } from "../api";
 
@@ -7,6 +8,7 @@ export function DeckView() {
   const navigate = useNavigate();
 
   const { data: decksData } = useSWR("/api/decks", fetchDecks);
+  const [currentCardIndex, setCurrentCardIndex] = useState(0);
   const { data: cards } = useSWR(
     deckName ? `/api/decks/${deckName}/cards` : null,
     () => fetchDeckCards(deckName!),
@@ -21,8 +23,16 @@ export function DeckView() {
     }
   };
 
-  const handleCardSelect = (cardId: number) => {
-    navigate(`/decks/${encodeURIComponent(deckName!)}/cards/${cardId}`);
+  const handleNextCard = () => {
+    if (cards && currentCardIndex < cards.length - 1) {
+      setCurrentCardIndex(currentCardIndex + 1);
+    }
+  };
+
+  const handlePreviousCard = () => {
+    if (currentCardIndex > 0) {
+      setCurrentCardIndex(currentCardIndex - 1);
+    }
   };
 
   return (
@@ -43,16 +53,36 @@ export function DeckView() {
       {cards && cards.length > 0 && (
         <div className="grid gap-4">
           <h2 className="text-xl font-bold">Due Cards ({cards.length})</h2>
-          <div className="grid gap-2">
-            {cards.map((card) => (
+          <div className="card p-4 border rounded mb-4">
+            <h2 className="font-bold">Card #{cards[currentCardIndex].cardId}</h2>
+            {/* Display card details here */}
+            <div className="mb-4">
+              <h2 className="font-bold">Card Fields:</h2>
+              {Object.entries(cards[currentCardIndex].fields).map(([field, value]) => (
+                <div key={field} className="mb-2">
+                  <strong>{field}: {value}</strong>
+                </div>
+              ))}
+            </div>
+
+            <div className="flex gap-2">
               <button
-                key={card.cardId}
-                onClick={() => handleCardSelect(card.cardId)}
-                className="text-left p-4 border rounded hover:bg-gray-50"
+                type="button"
+                onClick={handlePreviousCard}
+                disabled={currentCardIndex === 0}
+                className="bg-gray-500 text-white px-4 py-2 rounded"
               >
-                Card #{card.cardId}
+                Previous
               </button>
-            ))}
+              <button
+                type="button"
+                onClick={handleNextCard}
+                disabled={currentCardIndex === cards.length - 1}
+                className="bg-gray-500 text-white px-4 py-2 rounded"
+              >
+                Next
+              </button>
+            </div>
           </div>
         </div>
       )}
