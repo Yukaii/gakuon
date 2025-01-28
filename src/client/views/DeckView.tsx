@@ -127,23 +127,10 @@ export function DeckView() {
             <h2 className="font-bold">
               Card #{cards[currentCardIndex].cardId}
             </h2>
-            {/* Display card details here */}
-            <div className="mb-4">
-              <h2 className="font-bold">Card Fields:</h2>
-              {Object.entries(deckConfig.config.responseFields).map(
-                ([field, config]) => (
-                  <div key={field} className="mb-2">
-                    <strong>
-                      {field}: {fieldData.value}
-                    </strong>
-                  </div>
-                ),
-              )}
-            </div>
 
             {/* Generated content */}
 
-            {cardInfo?.audioUrls?.length > 0 && (
+            {deckConfig && cardInfo && cardInfo?.audioUrls?.length > 0 && (
               <>
                 <div className="mb-4">
                   <h2 className="font-bold">Generated Content:</h2>
