@@ -1,9 +1,8 @@
-import { createBrowserRouter, Navigate } from "react-router-dom";
+import { Navigate, createHashRouter } from "react-router-dom";
 import { DeckView } from "./views/DeckView";
-import { CardView } from "./views/CardView";
 import { RootLayout } from "./layouts/RootLayout";
 
-export const router = createBrowserRouter([
+export const router = createHashRouter([
   {
     path: "/",
     element: <RootLayout />,
@@ -19,10 +18,6 @@ export const router = createBrowserRouter([
       {
         path: "decks/:deckName",
         element: <DeckView />,
-      },
-      {
-        path: "decks/:deckName/cards/:cardId",
-        element: <CardView />,
       },
     ],
   },
