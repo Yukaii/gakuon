@@ -139,4 +139,5 @@ export function DeckView() {
       )}
     </div>
   );
+  );
 }
