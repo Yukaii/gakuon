@@ -22,7 +22,10 @@ export function DeckView() {
   const [isRegenerating, setIsRegenerating] = useState(false);
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentAudioIndex, setCurrentAudioIndex] = useState(0);
+  const [currentTime, setCurrentTime] = useState(0);
+  const [duration, setDuration] = useState(0);
   const audioRefs = useRef<HTMLAudioElement[]>([]);
+  const progressBarRef = useRef<HTMLDivElement>(null);
 
   const { data: deckConfig } = useSWR(
     deckName ? `/api/decks/${deckName}/config` : null,
@@ -96,9 +99,15 @@ export function DeckView() {
       }
     };
 
+    const handleTimeUpdate = (audio: HTMLAudioElement) => {
+      setCurrentTime(audio.currentTime);
+      setDuration(audio.duration);
+    };
+
     audioRefs.current.forEach(audio => {
       if (audio) {
         audio.addEventListener('ended', handleAudioEnd);
+        audio.addEventListener('timeupdate', () => handleTimeUpdate(audio));
       }
     });
 
@@ -106,10 +115,29 @@ export function DeckView() {
       audioRefs.current.forEach(audio => {
         if (audio) {
           audio.removeEventListener('ended', handleAudioEnd);
+          audio.removeEventListener('timeupdate', () => handleTimeUpdate(audio));
         }
       });
     };
   }, [currentAudioIndex, cardInfo?.audioUrls]);
+
+  const handleProgressBarClick = (event: React.MouseEvent<HTMLDivElement>) => {
+    const progressBar = progressBarRef.current;
+    if (!progressBar || !audioRefs.current[currentAudioIndex]) return;
+
+    const rect = progressBar.getBoundingClientRect();
+    const clickPosition = (event.clientX - rect.left) / rect.width;
+    const newTime = clickPosition * audioRefs.current[currentAudioIndex].duration;
+    
+    audioRefs.current[currentAudioIndex].currentTime = newTime;
+    setCurrentTime(newTime);
+  };
+
+  const formatTime = (time: number) => {
+    const minutes = Math.floor(time / 60);
+    const seconds = Math.floor(time % 60);
+    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+  };
 
   const handlePlayPause = () => {
     if (!cardInfo?.audioUrls?.length) return;
@@ -200,16 +228,66 @@ export function DeckView() {
                   </details>
                 </div>
 
-                <div className="mb-4">
-                  <div className="flex items-center gap-2 mb-2">
-                    <h2 className="font-bold">Audio:</h2>
-                    <button
-                      onClick={handlePlayPause}
-                      className="bg-blue-500 text-white px-4 py-1 rounded-full hover:bg-blue-600 transition"
+                <div className="mb-4 bg-gray-800 p-4 rounded-lg text-white">
+                  <div className="flex flex-col gap-4">
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm">
+                          Track {currentAudioIndex + 1}/{cardInfo.audioUrls.length}
+                        </span>
+                      </div>
+                      <div className="text-sm">
+                        {formatTime(currentTime)} / {formatTime(duration)}
+                      </div>
+                    </div>
+
+                    <div 
+                      ref={progressBarRef}
+                      className="h-2 bg-gray-600 rounded-full cursor-pointer relative"
+                      onClick={handleProgressBarClick}
                     >
-                      {isPlaying ? "Pause" : "Play"}
-                    </button>
+                      <div 
+                        className="absolute h-full bg-blue-500 rounded-full"
+                        style={{ width: `${(currentTime / duration) * 100}%` }}
+                      />
+                    </div>
+
+                    <div className="flex justify-center items-center gap-4">
+                      <button
+                        onClick={() => {
+                          if (currentAudioIndex > 0) {
+                            setCurrentAudioIndex(prev => prev - 1);
+                            setIsPlaying(true);
+                            audioRefs.current[currentAudioIndex - 1]?.play();
+                          }
+                        }}
+                        className="text-white hover:text-blue-400 transition"
+                        disabled={currentAudioIndex === 0}
+                      >
+                        ⏮️
+                      </button>
+                      <button
+                        onClick={handlePlayPause}
+                        className="w-12 h-12 flex items-center justify-center bg-blue-500 rounded-full hover:bg-blue-600 transition transform hover:scale-105"
+                      >
+                        {isPlaying ? "⏸️" : "▶️"}
+                      </button>
+                      <button
+                        onClick={() => {
+                          if (currentAudioIndex < cardInfo.audioUrls.length - 1) {
+                            setCurrentAudioIndex(prev => prev + 1);
+                            setIsPlaying(true);
+                            audioRefs.current[currentAudioIndex + 1]?.play();
+                          }
+                        }}
+                        className="text-white hover:text-blue-400 transition"
+                        disabled={currentAudioIndex === cardInfo.audioUrls.length - 1}
+                      >
+                        ⏭️
+                      </button>
+                    </div>
                   </div>
+
                   {cardInfo.audioUrls.map((url, index) => (
                     <audio
                       key={index}
