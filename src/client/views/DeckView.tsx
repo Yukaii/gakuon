@@ -60,6 +60,7 @@ export function DeckView() {
       setIsRegenerating(false);
     }
   };
+  return (
     <div>
       <select
         value={deckName || ""}
@@ -136,8 +137,8 @@ export function DeckView() {
               {isRegenerating ? "Regenerating..." : "Regenerate"}
             </button>
         </div>
-      )}
+      </div>
+    )}
     </div>
-  );
-  );
+  )
 }
