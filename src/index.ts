@@ -12,7 +12,7 @@ console.log(BANNER);
 program
   .name("gakuon")
   .description("AI-Powered Audio Learning System for Anki")
-  .version("0.1.0");
+  .version("0.3.0");
 
 program
   .command("learn")
