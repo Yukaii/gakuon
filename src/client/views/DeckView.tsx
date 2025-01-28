@@ -40,7 +40,7 @@ export function DeckView() {
 
     return fetchedCards;
   }, [fetchedCards]);
-    const selectedDeck = event.target.value;
+  const handleDeckSelect = (event: React.ChangeEvent<HTMLSelectElement>) => {
     if (selectedDeck) {
       navigate(`/decks/${encodeURIComponent(selectedDeck)}`);
     } else {
@@ -92,7 +92,7 @@ export function DeckView() {
       setIsRegenerating(false);
     }
   };
-  return React.memo(() => (
+  return (
     <div>
       <select
         value={deckName || ""}
