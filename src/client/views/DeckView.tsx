@@ -34,7 +34,11 @@ export function DeckView() {
     const storedCardIds = JSON.parse(localStorage.getItem("cardIds") || "[]");
     const currentCardIds = fetchedCards.map(card => card.cardId);
 
-    if (JSON.stringify(storedCardIds) !== JSON.stringify(currentCardIds)) {
+    const areCardIdsEqual =
+      storedCardIds.length === currentCardIds.length &&
+      storedCardIds.every((id) => currentCardIds.includes(id));
+
+    if (!areCardIdsEqual) {
       localStorage.setItem("cardIds", JSON.stringify(currentCardIds));
     }
 
