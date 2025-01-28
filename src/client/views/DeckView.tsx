@@ -90,6 +90,17 @@ export function DeckView() {
               ))}
             </div>
 
+            {cards[currentCardIndex].audioUrls?.length > 0 && (
+              <div className="mb-4">
+                <h2 className="font-bold">Audio:</h2>
+                {cards[currentCardIndex].audioUrls.map((url, index) => (
+                  <audio key={index} controls className="w-full mb-2">
+                    <source src={`${API_BASE}/api/audio/${url.replace("[sound:", "").replace("]", "")}`} />
+                  </audio>
+                ))}
+              </div>
+            )}
+
             <div className="flex gap-2">
               <button
                 type="button"
