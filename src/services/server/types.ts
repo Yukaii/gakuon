@@ -9,6 +9,7 @@ export interface ServerDependencies {
   contentManager: ContentManager;
   config: GakuonConfig;
   debug?: boolean;
+  serveClient?: boolean;
 }
 
 export interface APIError {

@@ -32,6 +32,7 @@ program
   .description("Start the Gakuon HTTP server")
   .option("-p, --port <number>", "Port to listen on", "4989")
   .option("-d, --debug", "Enable debug mode")
+  .option("--serve-client", "Serve built client app from dist/client")
   .action(serve);
 
 program.parse();

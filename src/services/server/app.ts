@@ -13,6 +13,7 @@ import { randomBytes } from "node:crypto";
 import { join } from "node:path";
 import { tmpdir } from "node:os";
 import { writeFile, unlink } from "node:fs/promises";
+import { existsSync } from "node:fs";
 
 async function saveBase64ToTemp(base64Data: string): Promise<string> {
   // Create a unique filename
@@ -32,6 +33,37 @@ export function createServer(deps: ServerDependencies) {
   // Middleware
   app.use(cors());
   app.use(express.json());
+
+  if (deps.serveClient) {
+    // Try multiple possible locations for client files
+    const possiblePaths = [
+      // Development path
+      join(__dirname, "../../client/dist/client"),
+      // Installed package path
+      join(__dirname, "../../../client"),
+      // Built package path
+      join(__dirname, "../client"),
+    ];
+
+    let clientPath = null;
+    for (const path of possiblePaths) {
+      try {
+        const indexPath = join(path, "index.html");
+        if (existsSync(indexPath)) {
+          clientPath = path;
+          break;
+        }
+      } catch (e) {
+        // Continue trying paths
+      }
+    }
+
+    if (!clientPath) {
+      console.warn("Could not find client files to serve");
+    } else {
+      app.use(express.static(clientPath));
+    }
+  }
 
   // Debug logging
   if (deps.debug) {

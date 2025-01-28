@@ -8,6 +8,7 @@ import type { Server } from "node:http";
 interface ServeOptions {
   port?: string;
   debug?: boolean;
+  serveClient?: boolean;
 }
 
 export async function serve(options: ServeOptions = {}) {
@@ -29,6 +30,7 @@ export async function serve(options: ServeOptions = {}) {
     contentManager,
     debug,
     config,
+    serveClient: options.serveClient,
   });
 
   let server: Server | null = null;
