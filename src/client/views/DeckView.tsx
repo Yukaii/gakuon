@@ -1,7 +1,7 @@
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useState } from "react";
 import useSWR from "swr";
-import { fetchDecks, fetchDeckCards, answerCard, regenerateCard } from "../api";
+import { fetchDecks, fetchDeckCards, fetchCard, answerCard, regenerateCard } from "../api";
 
 export function DeckView() {
   const { deckName } = useParams();
@@ -9,6 +9,7 @@ export function DeckView() {
 
   const { data: decksData } = useSWR("/api/decks", fetchDecks);
   const [currentCardIndex, setCurrentCardIndex] = useState(0);
+  const [cardInfo, setCardInfo] = useState(null);
   const [isRegenerating, setIsRegenerating] = useState(false);
   const { data: cards, mutate: mutateCards } = useSWR(
     deckName ? `/api/decks/${deckName}/cards` : null,
@@ -23,6 +24,12 @@ export function DeckView() {
       navigate("/decks");
     }
   };
+
+  useEffect(() => {
+    if (cards && cards.length > 0) {
+      fetchCard(cards[currentCardIndex].cardId).then(setCardInfo);
+    }
+  }, [cards, currentCardIndex]);
 
   const handleNextCard = () => {
     if (cards && currentCardIndex < cards.length - 1) {
@@ -90,10 +97,10 @@ export function DeckView() {
               ))}
             </div>
 
-            {cards[currentCardIndex].audioUrls?.length > 0 && (
+            {cardInfo?.audioUrls?.length > 0 && (
               <div className="mb-4">
                 <h2 className="font-bold">Audio:</h2>
-                {cards[currentCardIndex].audioUrls.map((url, index) => (
+                {cardInfo.audioUrls.map((url, index) => (
                   <audio key={index} controls className="w-full mb-2">
                     <source src={`${API_BASE}/api/audio/${url.replace("[sound:", "").replace("]", "")}`} />
                   </audio>
