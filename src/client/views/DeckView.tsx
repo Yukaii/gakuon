@@ -20,7 +20,7 @@ export function DeckView() {
   const { data: decksData } = useSWR("/api/decks", fetchDecks);
   const initialCardId = new URLSearchParams(location.search).get("cardId");
   const [isRegenerating, setIsRegenerating] = useState(false);
-  
+
   const { data: deckConfig } = useSWR(
     deckName ? `/api/decks/${deckName}/config` : null,
     () => fetchDeckConfig(deckName!),
@@ -56,7 +56,7 @@ export function DeckView() {
 
   const { data: cardInfo, mutate: mutateCardInfo } = useSWR(
     cards ? `/api/cards/${cards[currentCardIndex]?.cardId}` : null,
-    () => cards && fetchCard(cards[currentCardIndex].cardId)
+    () => cards && fetchCard(cards[currentCardIndex].cardId),
   );
 
   const handleDeckSelect = (event: React.ChangeEvent<HTMLSelectElement>) => {
@@ -105,10 +105,7 @@ export function DeckView() {
     try {
       setIsRegenerating(true);
       await regenerateCard(cards[currentCardIndex].cardId);
-      await Promise.all([
-        mutateCardInfo(),
-        mutateCards()
-      ]);
+      await Promise.all([mutateCardInfo(), mutateCards()]);
     } catch (err) {
       console.error("Failed to regenerate card:", err);
     } finally {
