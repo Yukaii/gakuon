@@ -12,6 +12,4 @@ export function getApiBase(): string {
 // Function to change API base URL at runtime
 export function setApiBase(newBase: string | null) {
   localApiBase = newBase;
-  // Force a page reload to ensure all components pick up the new API base
-  window.location.reload();
 }
