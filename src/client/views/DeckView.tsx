@@ -19,11 +19,6 @@ export function DeckView() {
 
   const { data: decksData } = useSWR("/api/decks", fetchDecks);
   const initialCardId = new URLSearchParams(location.search).get("cardId");
-  const [currentCardIndex, setCurrentCardIndex] = useState(
-    initialCardId
-      ? cards?.findIndex((card) => card.cardId === Number(initialCardId)) || 0
-      : 0,
-  );
   const [cardInfo, setCardInfo] = useState(null);
   const [isRegenerating, setIsRegenerating] = useState(false);
   const { data: deckConfig } = useSWR(
@@ -52,6 +47,14 @@ export function DeckView() {
 
     return fetchedCards;
   }, [fetchedCards]);
+
+
+  const [currentCardIndex, setCurrentCardIndex] = useState(
+    initialCardId
+      ? cards?.findIndex((card) => card.cardId === Number(initialCardId)) || 0
+      : 0,
+  );
+
   const handleDeckSelect = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedDeck = event.target.value;
     if (selectedDeck) {
