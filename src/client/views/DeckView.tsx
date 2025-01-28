@@ -19,7 +19,9 @@ export function DeckView() {
   const { data: decksData } = useSWR("/api/decks", fetchDecks);
   const initialCardId = new URLSearchParams(location.search).get("cardId");
   const [currentCardIndex, setCurrentCardIndex] = useState(
-    initialCardId ? cards?.findIndex(card => card.cardId === Number(initialCardId)) || 0 : 0
+    initialCardId
+      ? cards?.findIndex((card) => card.cardId === Number(initialCardId)) || 0
+      : 0,
   );
   const [cardInfo, setCardInfo] = useState(null);
   const [isRegenerating, setIsRegenerating] = useState(false);
@@ -32,7 +34,7 @@ export function DeckView() {
     if (!fetchedCards) return null;
 
     const storedCardIds = JSON.parse(localStorage.getItem("cardIds") || "[]");
-    const currentCardIds = fetchedCards.map(card => card.cardId);
+    const currentCardIds = fetchedCards.map((card) => card.cardId);
 
     const areCardIdsEqual =
       storedCardIds.length === currentCardIds.length &&
@@ -45,6 +47,7 @@ export function DeckView() {
     return fetchedCards;
   }, [fetchedCards]);
   const handleDeckSelect = (event: React.ChangeEvent<HTMLSelectElement>) => {
+    const selectedDeck = event.target.value;
     if (selectedDeck) {
       navigate(`/decks/${encodeURIComponent(selectedDeck)}`);
     } else {

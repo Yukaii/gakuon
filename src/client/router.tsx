@@ -1,9 +1,9 @@
-import { createBrowserRouter, Navigate } from "react-router-dom";
+import { Navigate, createHashRouter } from "react-router-dom";
 import { DeckView } from "./views/DeckView";
 import { CardView } from "./views/CardView";
 import { RootLayout } from "./layouts/RootLayout";
 
-export const router = createBrowserRouter([
+export const router = createHashRouter([
   {
     path: "/",
     element: <RootLayout />,
