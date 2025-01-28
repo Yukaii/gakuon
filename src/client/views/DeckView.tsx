@@ -1,13 +1,13 @@
 import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useState, useEffect, useMemo, useRef } from "react";
-import { 
-  Play, 
-  Pause, 
-  SkipBack, 
+import {
+  Play,
+  Pause,
+  SkipBack,
   SkipForward,
   ArrowLeft,
   ArrowRight,
-  ArrowCounterClockwise
+  ArrowCounterClockwise,
 } from "@phosphor-icons/react";
 import useSWR from "swr";
 import {
@@ -100,7 +100,7 @@ export function DeckView() {
   useEffect(() => {
     const handleAudioEnd = () => {
       if (currentAudioIndex < (cardInfo?.audioUrls?.length || 0) - 1) {
-        setCurrentAudioIndex(prev => prev + 1);
+        setCurrentAudioIndex((prev) => prev + 1);
         audioRefs.current[currentAudioIndex + 1]?.play();
       } else {
         setIsPlaying(false);
@@ -113,18 +113,20 @@ export function DeckView() {
       setDuration(audio.duration);
     };
 
-    audioRefs.current.forEach(audio => {
+    audioRefs.current.forEach((audio) => {
       if (audio) {
-        audio.addEventListener('ended', handleAudioEnd);
-        audio.addEventListener('timeupdate', () => handleTimeUpdate(audio));
+        audio.addEventListener("ended", handleAudioEnd);
+        audio.addEventListener("timeupdate", () => handleTimeUpdate(audio));
       }
     });
 
     return () => {
-      audioRefs.current.forEach(audio => {
+      audioRefs.current.forEach((audio) => {
         if (audio) {
-          audio.removeEventListener('ended', handleAudioEnd);
-          audio.removeEventListener('timeupdate', () => handleTimeUpdate(audio));
+          audio.removeEventListener("ended", handleAudioEnd);
+          audio.removeEventListener("timeupdate", () =>
+            handleTimeUpdate(audio),
+          );
         }
       });
     };
@@ -136,8 +138,9 @@ export function DeckView() {
 
     const rect = progressBar.getBoundingClientRect();
     const clickPosition = (event.clientX - rect.left) / rect.width;
-    const newTime = clickPosition * audioRefs.current[currentAudioIndex].duration;
-    
+    const newTime =
+      clickPosition * audioRefs.current[currentAudioIndex].duration;
+
     audioRefs.current[currentAudioIndex].currentTime = newTime;
     setCurrentTime(newTime);
   };
@@ -145,7 +148,7 @@ export function DeckView() {
   const formatTime = (time: number) => {
     const minutes = Math.floor(time / 60);
     const seconds = Math.floor(time % 60);
-    return `${minutes}:${seconds.toString().padStart(2, '0')}`;
+    return `${minutes}:${seconds.toString().padStart(2, "0")}`;
   };
 
   const handlePlayPause = () => {
@@ -242,7 +245,8 @@ export function DeckView() {
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-2">
                         <span className="text-sm">
-                          Track {currentAudioIndex + 1}/{cardInfo.audioUrls.length}
+                          Track {currentAudioIndex + 1}/
+                          {cardInfo.audioUrls.length}
                         </span>
                       </div>
                       <div className="text-sm">
@@ -250,12 +254,12 @@ export function DeckView() {
                       </div>
                     </div>
 
-                    <div 
+                    <div
                       ref={progressBarRef}
                       className="h-2 bg-gray-600 rounded-full cursor-pointer relative"
                       onClick={handleProgressBarClick}
                     >
-                      <div 
+                      <div
                         className="absolute h-full bg-blue-500 rounded-full"
                         style={{ width: `${(currentTime / duration) * 100}%` }}
                       />
@@ -265,7 +269,7 @@ export function DeckView() {
                       <button
                         onClick={() => {
                           if (currentAudioIndex > 0) {
-                            setCurrentAudioIndex(prev => prev - 1);
+                            setCurrentAudioIndex((prev) => prev - 1);
                             setIsPlaying(true);
                             audioRefs.current[currentAudioIndex - 1]?.play();
                           }
@@ -281,18 +285,27 @@ export function DeckView() {
                         className="w-12 h-12 flex items-center justify-center bg-blue-500 rounded-full hover:bg-blue-600 transition transform hover:scale-105"
                         title={isPlaying ? "Pause" : "Play"}
                       >
-                        {isPlaying ? <Pause size={24} weight="fill" /> : <Play size={24} weight="fill" />}
+                        {isPlaying ? (
+                          <Pause size={24} weight="fill" />
+                        ) : (
+                          <Play size={24} weight="fill" />
+                        )}
                       </button>
                       <button
                         onClick={() => {
-                          if (currentAudioIndex < cardInfo.audioUrls.length - 1) {
-                            setCurrentAudioIndex(prev => prev + 1);
+                          if (
+                            currentAudioIndex <
+                            cardInfo.audioUrls.length - 1
+                          ) {
+                            setCurrentAudioIndex((prev) => prev + 1);
                             setIsPlaying(true);
                             audioRefs.current[currentAudioIndex + 1]?.play();
                           }
                         }}
                         className="text-white hover:text-blue-400 transition"
-                        disabled={currentAudioIndex === cardInfo.audioUrls.length - 1}
+                        disabled={
+                          currentAudioIndex === cardInfo.audioUrls.length - 1
+                        }
                         title="Next Track"
                       >
                         <SkipForward size={24} weight="fill" />
@@ -303,7 +316,7 @@ export function DeckView() {
                   {cardInfo.audioUrls.map((url, index) => (
                     <audio
                       key={index}
-                      ref={el => {
+                      ref={(el) => {
                         if (el) audioRefs.current[index] = el;
                       }}
                       className="hidden"
@@ -331,7 +344,6 @@ export function DeckView() {
                 title="Previous Card"
               >
                 <ArrowLeft size={20} weight="bold" className="mr-1" />
-                Previous
               </button>
               <button
                 type="button"
@@ -340,7 +352,6 @@ export function DeckView() {
                 className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition"
                 title="Next Card"
               >
-                Next
                 <ArrowRight size={20} weight="bold" className="ml-1" />
               </button>
             </div>
