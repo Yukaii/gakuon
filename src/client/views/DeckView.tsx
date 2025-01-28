@@ -135,7 +135,18 @@ export function DeckView() {
               )}
             </div>
 
-            {cardInfo?.audioUrls?.length > 0 && (
+            {/* Generated content */}
+            <div className="mb-4">
+              <h2 className="font-bold">Generated Content:</h2>
+              {Object.entries(cards[currentCardIndex].fields).map(
+                ([field, fieldData]) => (
+                  <div key={field} className="mb-2">
+                    <strong>{field}:</strong>{" "}
+                    {cardInfo?.content?.[field] || "(Not generated)"}
+                  </div>
+                ),
+              )}
+            </div>
               <div className="mb-4">
                 <h2 className="font-bold">Audio:</h2>
                 {cardInfo.audioUrls.map((url, index) => (
