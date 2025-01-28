@@ -1,5 +1,5 @@
 import { useParams, useNavigate, useLocation } from "react-router-dom";
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import useSWR from "swr";
 import {
   fetchDeckConfig,
@@ -20,6 +20,9 @@ export function DeckView() {
   const { data: decksData } = useSWR("/api/decks", fetchDecks);
   const initialCardId = new URLSearchParams(location.search).get("cardId");
   const [isRegenerating, setIsRegenerating] = useState(false);
+  const [isPlaying, setIsPlaying] = useState(false);
+  const [currentAudioIndex, setCurrentAudioIndex] = useState(0);
+  const audioRefs = useRef<HTMLAudioElement[]>([]);
 
   const { data: deckConfig } = useSWR(
     deckName ? `/api/decks/${deckName}/config` : null,
@@ -75,6 +78,50 @@ export function DeckView() {
       handleRegenerate();
     }
   }, [cardInfo]);
+
+  useEffect(() => {
+    // Reset audio state when card changes
+    setIsPlaying(false);
+    setCurrentAudioIndex(0);
+  }, [currentCardIndex]);
+
+  useEffect(() => {
+    const handleAudioEnd = () => {
+      if (currentAudioIndex < (cardInfo?.audioUrls?.length || 0) - 1) {
+        setCurrentAudioIndex(prev => prev + 1);
+        audioRefs.current[currentAudioIndex + 1]?.play();
+      } else {
+        setIsPlaying(false);
+        setCurrentAudioIndex(0);
+      }
+    };
+
+    audioRefs.current.forEach(audio => {
+      if (audio) {
+        audio.addEventListener('ended', handleAudioEnd);
+      }
+    });
+
+    return () => {
+      audioRefs.current.forEach(audio => {
+        if (audio) {
+          audio.removeEventListener('ended', handleAudioEnd);
+        }
+      });
+    };
+  }, [currentAudioIndex, cardInfo?.audioUrls]);
+
+  const handlePlayPause = () => {
+    if (!cardInfo?.audioUrls?.length) return;
+
+    if (isPlaying) {
+      audioRefs.current[currentAudioIndex]?.pause();
+      setIsPlaying(false);
+    } else {
+      audioRefs.current[currentAudioIndex]?.play();
+      setIsPlaying(true);
+    }
+  };
 
   const handleNextCard = async () => {
     if (cards && currentCardIndex < cards.length - 1) {
@@ -154,9 +201,28 @@ export function DeckView() {
                 </div>
 
                 <div className="mb-4">
-                  <h2 className="font-bold">Audio:</h2>
+                  <div className="flex items-center gap-2 mb-2">
+                    <h2 className="font-bold">Audio:</h2>
+                    <button
+                      onClick={handlePlayPause}
+                      className="bg-blue-500 text-white px-4 py-1 rounded-full hover:bg-blue-600 transition"
+                    >
+                      {isPlaying ? "Pause" : "Play"}
+                    </button>
+                  </div>
                   {cardInfo.audioUrls.map((url, index) => (
-                    <audio key={index} controls className="w-full mb-2">
+                    <audio
+                      key={index}
+                      ref={el => {
+                        if (el) audioRefs.current[index] = el;
+                      }}
+                      className="hidden"
+                      onCanPlay={() => {
+                        if (index === 0 && !isPlaying) {
+                          handlePlayPause();
+                        }
+                      }}
+                    >
                       <source
                         src={`${API_BASE}/api/audio/${url.replace("[sound:", "").replace("]", "")}`}
                       />
