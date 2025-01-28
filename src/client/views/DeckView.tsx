@@ -54,6 +54,11 @@ export function DeckView() {
       : 0,
   );
 
+  const { data: cardInfo, mutate: mutateCardInfo } = useSWR(
+    cards ? `/api/cards/${cards[currentCardIndex]?.cardId}` : null,
+    () => cards && fetchCard(cards[currentCardIndex].cardId)
+  );
+
   const handleDeckSelect = (event: React.ChangeEvent<HTMLSelectElement>) => {
     const selectedDeck = event.target.value;
     if (selectedDeck) {
