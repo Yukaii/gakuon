@@ -38,11 +38,11 @@ export function createServer(deps: ServerDependencies) {
     // Try multiple possible locations for client files
     const possiblePaths = [
       // Development path
-      new URL("../../client/dist/client", import.meta.url).pathname,
+      join(__dirname, "../../client/dist/client"),
       // Installed package path
-      new URL("../../../client", import.meta.url).pathname,
+      join(__dirname, "../../../client"),
       // Built package path
-      new URL("../client", import.meta.url).pathname
+      join(__dirname, "../client"),
     ];
 
     let clientPath = null;
@@ -62,9 +62,6 @@ export function createServer(deps: ServerDependencies) {
       console.warn("Could not find client files to serve");
     } else {
       app.use(express.static(clientPath));
-      app.get("/", (_req, res) =>
-        res.sendFile("index.html", { root: clientPath })
-      );
     }
   }
 
