@@ -9,7 +9,7 @@
   "scripts": {
     "start": "bun run src/index.ts",
     "build": "bun build src/index.ts --target=node --outfile dist/gakuon",
-    "prepublishOnly": "bun run build",
+    "prepublishOnly": "bun run build && bun run build:client",
     "fmt": "bunx biome format --write ./src",
     "test": "jest",
     "test:watch": "jest --watch",
