@@ -106,11 +106,11 @@ export function DeckView() {
     }
   };
   return (
-    <div>
+    <div className="max-w-2xl mx-auto p-4 bg-white shadow-md rounded-lg">
       <select
         value={deckName || ""}
         onChange={handleDeckSelect}
-        className="w-full p-2 mb-4 border rounded"
+        className="w-full p-2 mb-4 border rounded bg-gray-100"
       >
         <option value="">Select a deck</option>
         {decksData?.decks.map((deck) => (
@@ -121,9 +121,9 @@ export function DeckView() {
       </select>
 
       {cards && cards.length > 0 && (
-        <div className="grid gap-4">
+        <div className="grid gap-4 bg-gray-50 p-4 rounded-lg shadow-inner">
           <h2 className="text-xl font-bold">Due Cards ({cards.length})</h2>
-          <div className="card p-4 border rounded mb-4">
+          <div className="card p-4 border rounded mb-4 bg-gray-100 shadow">
             <h2 className="font-bold">
               Card #{cards[currentCardIndex].cardId}
             </h2>
@@ -157,12 +157,12 @@ export function DeckView() {
               </>
             )}
 
-            <div className="flex gap-2">
+            <div className="flex gap-2 justify-between items-center mt-4">
               <button
                 type="button"
                 onClick={handlePreviousCard}
                 disabled={currentCardIndex === 0}
-                className="bg-gray-500 text-white px-4 py-2 rounded"
+                className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition"
               >
                 Previous
               </button>
@@ -170,12 +170,12 @@ export function DeckView() {
                 type="button"
                 onClick={handleNextCard}
                 disabled={currentCardIndex === cards.length - 1}
-                className="bg-gray-500 text-white px-4 py-2 rounded"
+                className="bg-gray-500 text-white px-4 py-2 rounded hover:bg-gray-600 transition"
               >
                 Next
               </button>
             </div>
-            <div className="flex gap-2 mt-4">
+            <div className="flex gap-2 mt-4 justify-center">
               {[
                 { ease: 1, label: "Again", color: "red" },
                 { ease: 2, label: "Hard", color: "yellow" },
@@ -186,7 +186,7 @@ export function DeckView() {
                   key={ease}
                   type="button"
                   onClick={() => handleAnswer(ease)}
-                  className={`bg-${color}-500 text-white px-4 py-2 rounded`}
+                  className={`bg-${color}-500 text-white px-4 py-2 rounded hover:bg-${color}-600 transition`}
                 >
                   {label}
                 </button>
@@ -199,7 +199,7 @@ export function DeckView() {
               disabled={isRegenerating}
               className={`mt-4 ${
                 isRegenerating ? "bg-gray-300" : "bg-gray-500"
-              } text-white px-4 py-2 rounded`}
+              } text-white px-4 py-2 rounded hover:bg-gray-600 transition`}
             >
               {isRegenerating ? "Regenerating..." : "Regenerate"}
             </button>
