@@ -186,7 +186,7 @@ export function DeckView() {
                   key={ease}
                   type="button"
                   onClick={() => handleAnswer(ease)}
-                  className={`bg-${color}-500 text-white px-4 py-2 rounded hover:bg-${color}-600 transition`}
+                  className={`bg-${color}-500 text-white px-4 py-2 rounded-full shadow-md hover:bg-${color}-600 transition transform hover:scale-105`}
                 >
                   {label}
                 </button>
@@ -199,7 +199,7 @@ export function DeckView() {
               disabled={isRegenerating}
               className={`mt-4 ${
                 isRegenerating ? "bg-gray-300" : "bg-gray-500"
-              } text-white px-4 py-2 rounded hover:bg-gray-600 transition`}
+              } text-white px-4 py-2 rounded-full shadow-md hover:bg-gray-600 transition transform hover:scale-105`}
             >
               {isRegenerating ? "Regenerating..." : "Regenerate"}
             </button>
