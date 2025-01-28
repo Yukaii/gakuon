@@ -66,25 +66,18 @@ export function DeckView() {
   };
 
   useEffect(() => {
-    const fetchAndRegenerateCards = async () => {
+    const fetchCurrentCard = async () => {
       if (!cards || cards.length === 0) return;
 
-      const cardInfos = await Promise.all(
-        cards
-          .slice(currentCardIndex, currentCardIndex + 3)
-          .map((card) => fetchCard(card.cardId)),
-      );
+      const info = await fetchCard(cards[currentCardIndex].cardId);
+      setCardInfo(info);
 
-      cardInfos.forEach(async (info, index) => {
-        if (!info.audioUrls || info.audioUrls.length === 0) {
-          await regenerateCard(cards[currentCardIndex + index].cardId);
-        }
-      });
-
-      setCardInfo(cardInfos[0]);
+      if (!info.audioUrls || info.audioUrls.length === 0) {
+        await regenerateCard(cards[currentCardIndex].cardId);
+      }
     };
 
-    fetchAndRegenerateCards();
+    fetchCurrentCard();
   }, [cards, currentCardIndex]);
 
   useEffect(() => {
