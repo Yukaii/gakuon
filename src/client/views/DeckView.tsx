@@ -2,6 +2,7 @@ import { useParams, useNavigate, useLocation } from "react-router-dom";
 import { useState, useEffect, useMemo } from "react";
 import useSWR from "swr";
 import {
+  fetchDeckConfig,
   fetchDecks,
   fetchDeckCards,
   fetchCard,
@@ -25,6 +26,11 @@ export function DeckView() {
   );
   const [cardInfo, setCardInfo] = useState(null);
   const [isRegenerating, setIsRegenerating] = useState(false);
+  const { data: deckConfig } = useSWR(
+    deckName ? `/api/decks/${deckName}/config` : null,
+    () => fetchDeckConfig(deckName!),
+  );
+
   const { data: fetchedCards, mutate: mutateCards } = useSWR(
     deckName ? `/api/decks/${deckName}/cards` : null,
     () => fetchDeckCards(deckName!),
@@ -124,8 +130,8 @@ export function DeckView() {
             {/* Display card details here */}
             <div className="mb-4">
               <h2 className="font-bold">Card Fields:</h2>
-              {Object.entries(cards[currentCardIndex].fields).map(
-                ([field, fieldData]) => (
+              {Object.entries(deckConfig.config.responseFields).map(
+                ([field, config]) => (
                   <div key={field} className="mb-2">
                     <strong>
                       {field}: {fieldData.value}
@@ -141,8 +147,8 @@ export function DeckView() {
               <>
                 <div className="mb-4">
                   <h2 className="font-bold">Generated Content:</h2>
-                  {Object.entries(cards[currentCardIndex].fields).map(
-                    ([field, fieldData]) => (
+                  {Object.entries(deckConfig.config.responseFields).map(
+                    ([field, config]) => (
                       <div key={field} className="mb-2">
                         <strong>{field}:</strong>{" "}
                         {cardInfo?.content?.[field] || "(Not generated)"}
