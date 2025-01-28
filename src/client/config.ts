@@ -4,8 +4,10 @@ const DEFAULT_API_BASE = "http://localhost:4989/api";
 // Local runtime variable to override API base URL
 let localApiBase: string | null = null;
 
-// Allow overriding via environment variables or local override
-export const API_BASE = localApiBase || import.meta.env.VITE_API_BASE || DEFAULT_API_BASE;
+// Getter function for API base URL
+export function getApiBase(): string {
+  return localApiBase || import.meta.env.VITE_API_BASE || DEFAULT_API_BASE;
+}
 
 // Function to change API base URL at runtime
 export function setApiBase(newBase: string | null) {
