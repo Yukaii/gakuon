@@ -19,11 +19,8 @@ export function DeckView() {
 
   const { data: decksData } = useSWR("/api/decks", fetchDecks);
   const initialCardId = new URLSearchParams(location.search).get("cardId");
-  const { data: cardInfo, mutate: mutateCardInfo } = useSWR(
-    cards ? `/api/cards/${cards[currentCardIndex]?.cardId}` : null,
-    () => cards && fetchCard(cards[currentCardIndex].cardId)
-  );
   const [isRegenerating, setIsRegenerating] = useState(false);
+  
   const { data: deckConfig } = useSWR(
     deckName ? `/api/decks/${deckName}/config` : null,
     () => fetchDeckConfig(deckName!),
