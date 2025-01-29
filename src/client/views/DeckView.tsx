@@ -175,7 +175,7 @@ function AudioPlayer({
 
       {audioUrls.map((url, index) => (
         <audio
-          key={index}
+          key={url}
           ref={(el) => {
             if (el) audioRefs.current[index] = el;
           }}
