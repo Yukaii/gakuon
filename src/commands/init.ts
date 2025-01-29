@@ -10,6 +10,7 @@ import type { DeckConfig } from "../config/types";
 
 interface InitOptions {
   debug?: boolean;
+  config?: string;
 }
 
 async function generateDeckConfig(
@@ -93,7 +94,7 @@ export async function init(options: InitOptions = {}) {
 
   try {
     // Initialize services
-    const config = loadConfig();
+    const config = loadConfig(options.config);
     const ankiService = new AnkiService(config.global.ankiHost, debug);
     const openaiService = new OpenAIService(config.global.openaiApiKey, debug);
 

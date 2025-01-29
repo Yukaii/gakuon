@@ -49,13 +49,14 @@ function isContentValid(
 interface LearnOptions {
   debug?: boolean;
   deck?: string;
+  config?: string;
 }
 
 export async function learn(options: LearnOptions = {}) {
   const debug = createDebugLogger(options.debug || false);
 
   debug("Loading configuration...");
-  const config = loadConfig();
+  const config = loadConfig(options.config);
   const keyboard = new KeyboardHandler(options.debug);
 
   debug("Initializing services...");

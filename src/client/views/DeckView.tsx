@@ -69,7 +69,9 @@ function AudioPlayer({
       audioRefs.current.forEach((audio) => {
         if (audio) {
           audio.removeEventListener("ended", handleAudioEnd);
-          audio.removeEventListener("timeupdate", () => handleTimeUpdate(audio));
+          audio.removeEventListener("timeupdate", () =>
+            handleTimeUpdate(audio),
+          );
         }
       });
     };
@@ -81,7 +83,8 @@ function AudioPlayer({
 
     const rect = progressBar.getBoundingClientRect();
     const clickPosition = (event.clientX - rect.left) / rect.width;
-    const newTime = clickPosition * audioRefs.current[currentAudioIndex].duration;
+    const newTime =
+      clickPosition * audioRefs.current[currentAudioIndex].duration;
 
     audioRefs.current[currentAudioIndex].currentTime = newTime;
     setCurrentTime(newTime);
@@ -446,8 +449,12 @@ export function DeckView() {
     } else {
       navigate("/decks");
       const newCardId = cards[currentCardIndex - 1].cardId;
-      navigate(`/decks/${// biome-ignore lint/style/noNonNullAssertion: <explanation>
-encodeURIComponent(deckName!)}?cardId=${newCardId}`);
+      navigate(
+        `/decks/${
+          // biome-ignore lint/style/noNonNullAssertion: <explanation>
+          encodeURIComponent(deckName!)
+        }?cardId=${newCardId}`,
+      );
     }
   };
 
@@ -485,7 +492,7 @@ encodeURIComponent(deckName!)}?cardId=${newCardId}`);
         audio.addEventListener("ended", handleAudioEnd);
         audio.addEventListener("timeupdate", () => handleTimeUpdate(audio));
       }
-    };
+    }
 
     return () => {
       for (const audio of audioRefs.current) {

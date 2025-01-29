@@ -51,8 +51,8 @@ function processConfigValues(obj: any, path: string[] = []): any {
   return obj;
 }
 
-export function loadConfig(): GakuonConfig {
-  const configPath = join(homedir(), ".gakuon", "config.toml");
+export function loadConfig(customPath?: string): GakuonConfig {
+  const configPath = customPath || join(homedir(), ".gakuon", "config.toml");
 
   if (!existsSync(configPath)) {
     saveConfig(DEFAULT_CONFIG);

@@ -9,6 +9,7 @@ interface ServeOptions {
   port?: string;
   debug?: boolean;
   serveClient?: boolean;
+  config?: string;
 }
 
 export async function serve(options: ServeOptions = {}) {
@@ -16,7 +17,7 @@ export async function serve(options: ServeOptions = {}) {
   const port = Number.parseInt(options.port || "3000", 10);
 
   // Load configuration
-  const config = loadConfig();
+  const config = loadConfig(options.config);
 
   // Initialize services
   const ankiService = new AnkiService(config.global.ankiHost, debug);
