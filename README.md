@@ -47,6 +47,41 @@ npm install -g gakuon
 gakuon learn
 ```
 
+## Commands
+
+Gakuon provides several commands to help you manage and use your audio learning system:
+
+### `learn`
+
+Start an audio-based learning session:
+
+```bash
+gakuon learn              # Use default or select deck interactively
+gakuon learn --deck NAME  # Use specific deck
+gakuon learn --debug     # Enable debug logging
+```
+
+### `init`
+
+Initialize deck configuration interactively:
+
+```bash
+gakuon init              # Generate config interactively
+gakuon init --write      # Save generated config to file
+gakuon init --debug      # Enable debug logging
+```
+
+### `serve`
+
+Start the Gakuon HTTP server:
+
+```bash
+gakuon serve                # Start server on default port 4989
+gakuon serve -p 3000        # Use custom port
+gakuon serve --debug        # Enable debug logging
+gakuon serve --serve-client # Also serve builtint PWA client app
+```
+
 ## Development
 
 ```bash
