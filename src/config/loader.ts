@@ -52,20 +52,24 @@ function processConfigValues(obj: any, path: string[] = []): any {
   return obj;
 }
 
+function processRawConfig(rawConfig: any): GakuonConfig {
+  const withEnvVars = processConfigValues(rawConfig);
+  return {
+    ...withEnvVars,
+    global: {
+      ...withEnvVars.global,
+    },
+  };
+}
+
 export function loadConfig(customPath?: string): GakuonConfig {
   // First try to load from BASE64_GAKUON_CONFIG environment variable
   const base64Config = import.meta.env.BASE64_GAKUON_CONFIG;
   if (base64Config) {
     try {
       const decodedConfig = Buffer.from(base64Config, 'base64').toString('utf-8');
-      const rawConfig = parse(decodedConfig) as any as GakuonConfig;
-      const withEnvVars = processConfigValues(rawConfig);
-      return {
-        ...withEnvVars,
-        global: {
-          ...withEnvVars.global,
-        },
-      };
+      const rawConfig = parse(decodedConfig) as any;
+      return processRawConfig(rawConfig);
     } catch (error) {
       console.warn('Failed to parse BASE64_GAKUON_CONFIG:', error);
       // Fall through to file-based config
@@ -80,16 +84,8 @@ export function loadConfig(customPath?: string): GakuonConfig {
   }
 
   const configFile = readFileSync(configPath, "utf-8");
-  const rawConfig = parse(configFile) as any as GakuonConfig;
-
-  const withEnvVars = processConfigValues(rawConfig);
-
-  return {
-    ...withEnvVars,
-    global: {
-      ...withEnvVars.global,
-    },
-  };
+  const rawConfig = parse(configFile) as any;
+  return processRawConfig(rawConfig);
 }
 
 // Rest of deck-related functions remain unchanged
