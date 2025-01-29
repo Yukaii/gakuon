@@ -88,6 +88,11 @@ gakuon serve --serve-client # Also serve builtint PWA client app
 bun install
 
 bun run start
+# start server with development mode
+bun run start serve -d
+
+# start pwa client development mode
+bun run dev:client
 ```
 
 ## Example config
