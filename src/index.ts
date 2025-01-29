@@ -27,12 +27,15 @@ program
   .description("Start an audio-based learning session")
   .option("-d, --debug", "Enable debug mode")
   .option("--deck <name>", "Specify deck to use") // Added deck option
+  .option("-c, --config <path>", "Path to config file")
   .action(learn);
 
 program
   .command("init")
   .description("Initialize deck configuration interactively")
+  .option("-c, --config <path>", "Path to config file")
   .option("-d, --debug", "Enable debug mode")
+
   .action(init);
 
 program
@@ -41,6 +44,7 @@ program
   .option("-p, --port <number>", "Port to listen on", "4989")
   .option("-d, --debug", "Enable debug mode")
   .option("--serve-client", "Serve built client app from dist/client")
+  .option("-c, --config <path>", "Path to config file")
   .action(serve);
 
 program.parse();
