@@ -134,9 +134,14 @@ function AudioPlayer({
           <button
             onClick={() => {
               if (currentAudioIndex > 0) {
+                // Pause current audio
+                audioRefs.current[currentAudioIndex]?.pause();
                 setCurrentAudioIndex(currentAudioIndex - 1);
-                setIsPlaying(true);
-                audioRefs.current[currentAudioIndex - 1]?.play();
+                // Reset current time of the new audio
+                audioRefs.current[currentAudioIndex - 1].currentTime = 0;
+                if (isPlaying) {
+                  audioRefs.current[currentAudioIndex - 1]?.play();
+                }
               }
             }}
             className="text-white hover:text-white/70 dark:hover:text-blue-400 transition"
@@ -159,9 +164,14 @@ function AudioPlayer({
           <button
             onClick={() => {
               if (currentAudioIndex < audioUrls.length - 1) {
+                // Pause current audio
+                audioRefs.current[currentAudioIndex]?.pause();
                 setCurrentAudioIndex(currentAudioIndex + 1);
-                setIsPlaying(true);
-                audioRefs.current[currentAudioIndex + 1]?.play();
+                // Reset current time of the new audio
+                audioRefs.current[currentAudioIndex + 1].currentTime = 0;
+                if (isPlaying) {
+                  audioRefs.current[currentAudioIndex + 1]?.play();
+                }
               }
             }}
             className="text-white hover:text-blue-400 transition"
