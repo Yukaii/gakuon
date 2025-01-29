@@ -1,9 +1,9 @@
 import { AnkiService } from "../services/anki";
 import { OpenAIService } from "../services/openai";
 import { loadConfig, saveConfig } from "../config/loader";
-import { join } from "path";
-import { homedir } from "os";
-import { mkdir } from "fs/promises";
+import { join } from "node:path";
+import { homedir } from "node:os";
+import { mkdir } from "node:fs/promises";
 import Enquirer from "enquirer";
 import { parse } from "@iarna/toml";
 import type { DeckConfig } from "../config/types";
