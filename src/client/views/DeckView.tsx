@@ -1,5 +1,5 @@
 import { useParams, useNavigate, useLocation } from "react-router-dom";
-import { useState, useEffect, useMemo, useRef, type ReactNode } from "react";
+import { useState, useEffect, useMemo, useRef } from "react";
 import {
   Play,
   Pause,
@@ -333,9 +333,9 @@ function SettingsModal({
         <h2 className="text-xl font-bold mb-4 dark:text-white">Settings</h2>
 
         <div className="mb-4">
-          <label className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
+          <div className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
             API Base URL
-          </label>
+          </div>
           <input
             type="text"
             value={apiBase}
@@ -349,18 +349,21 @@ function SettingsModal({
           <button
             onClick={onReset}
             className="px-4 py-2 text-sm bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white rounded hover:bg-gray-300 dark:hover:bg-gray-600"
+            type="button"
           >
             Reset to Default
           </button>
           <button
             onClick={onSave}
             className="px-4 py-2 text-sm bg-blue-500 text-white rounded hover:bg-blue-600"
+            type="button"
           >
             Save
           </button>
           <button
             onClick={onClose}
             className="px-4 py-2 text-sm bg-gray-500 text-white rounded hover:bg-gray-600"
+            type="button"
           >
             Cancel
           </button>
@@ -382,10 +385,9 @@ export function DeckView() {
   const [newApiBase, setNewApiBase] = useState(getApiBase());
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentAudioIndex, setCurrentAudioIndex] = useState(0);
-  const [currentTime, setCurrentTime] = useState(0);
-  const [duration, setDuration] = useState(0);
+  const [, setCurrentTime] = useState(0);
+  const [, setDuration] = useState(0);
   const audioRefs = useRef<HTMLAudioElement[]>([]);
-  const progressBarRef = useRef<HTMLDivElement>(null);
 
   const { data: deckConfig } = useSWR(
     deckName ? `/api/decks/${deckName}/config` : null,
@@ -407,7 +409,7 @@ export function DeckView() {
 
     const areCardIdsEqual =
       storedCardIds.length === currentCardIds.length &&
-      storedCardIds.every((id) => currentCardIds.includes(id));
+      storedCardIds.every((id: number) => currentCardIds.includes(id));
 
     if (!areCardIdsEqual) {
       localStorage.setItem("cardIds", JSON.stringify(currentCardIds));
@@ -486,37 +488,6 @@ encodeURIComponent(deckName!)}?cardId=${newCardId}`);
       }
     };
   }, [currentAudioIndex, cardInfo?.audioUrls]);
-
-  const handleProgressBarClick = (event: React.MouseEvent<HTMLDivElement>) => {
-    const progressBar = progressBarRef.current;
-    if (!progressBar || !audioRefs.current[currentAudioIndex]) return;
-
-    const rect = progressBar.getBoundingClientRect();
-    const clickPosition = (event.clientX - rect.left) / rect.width;
-    const newTime =
-      clickPosition * audioRefs.current[currentAudioIndex].duration;
-
-    audioRefs.current[currentAudioIndex].currentTime = newTime;
-    setCurrentTime(newTime);
-  };
-
-  const formatTime = (time: number) => {
-    const minutes = Math.floor(time / 60);
-    const seconds = Math.floor(time % 60);
-    return `${minutes}:${seconds.toString().padStart(2, "0")}`;
-  };
-
-  const handlePlayPause = () => {
-    if (!cardInfo?.audioUrls?.length) return;
-
-    if (isPlaying) {
-      audioRefs.current[currentAudioIndex]?.pause();
-      setIsPlaying(false);
-    } else {
-      audioRefs.current[currentAudioIndex]?.play();
-      setIsPlaying(true);
-    }
-  };
 
   const handleNextCard = async () => {
     if (cards && currentCardIndex < cards.length - 1) {
@@ -616,6 +587,7 @@ encodeURIComponent(deckName!)}?cardId=${newCardId}`);
         onClick={() => setIsSettingsOpen(true)}
         className="fixed bottom-4 right-4 bg-gray-500 text-white p-2 rounded-full hover:bg-gray-600 transition"
         title="Settings"
+        type="button"
       >
         <Gear size={24} weight="bold" />
       </button>
