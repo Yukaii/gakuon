@@ -9,6 +9,11 @@ on:
         description: 'Image tag'
         required: true
         type: string
+      version:
+        description: 'Gakuon version (npm package version)'
+        required: false
+        type: string
+        default: 'latest'
 
 env:
   REGISTRY: ghcr.io
@@ -58,6 +63,8 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          build-args: |
+            GAKUON_VERSION=${{ github.event.release.tag_name && github.event.release.tag_name != '' && github.event.release.tag_name:1 || inputs.version }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
