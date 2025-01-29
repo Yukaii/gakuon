@@ -2,6 +2,7 @@ import { parse, stringify } from "@iarna/toml";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { homedir } from "node:os";
+import { Buffer } from "node:buffer";
 import {
   type GakuonConfig,
   type DeckConfig,
@@ -52,6 +53,26 @@ function processConfigValues(obj: any, path: string[] = []): any {
 }
 
 export function loadConfig(customPath?: string): GakuonConfig {
+  // First try to load from BASE64_GAKUON_CONFIG environment variable
+  const base64Config = import.meta.env.BASE64_GAKUON_CONFIG;
+  if (base64Config) {
+    try {
+      const decodedConfig = Buffer.from(base64Config, 'base64').toString('utf-8');
+      const rawConfig = parse(decodedConfig) as any as GakuonConfig;
+      const withEnvVars = processConfigValues(rawConfig);
+      return {
+        ...withEnvVars,
+        global: {
+          ...withEnvVars.global,
+        },
+      };
+    } catch (error) {
+      console.warn('Failed to parse BASE64_GAKUON_CONFIG:', error);
+      // Fall through to file-based config
+    }
+  }
+
+  // Fall back to file-based config
   const configPath = customPath || join(homedir(), ".gakuon", "config.toml");
 
   if (!existsSync(configPath)) {
