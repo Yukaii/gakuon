@@ -64,7 +64,7 @@ function processRawConfig(rawConfig: any): GakuonConfig {
 
 export function loadConfig(customPath?: string): GakuonConfig {
   // First try to load from BASE64_GAKUON_CONFIG environment variable
-  const base64Config = import.meta.env.BASE64_GAKUON_CONFIG;
+  const base64Config = process.env.BASE64_GAKUON_CONFIG;
   if (base64Config) {
     try {
       const decodedConfig = Buffer.from(base64Config, 'base64').toString('utf-8');
