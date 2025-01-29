@@ -328,6 +328,7 @@ interface SettingsModalProps {
   onApiBaseChange: (value: string) => void;
   onReset: () => void;
   onSave: () => void;
+  errorMessage?: string;
 }
 
 function SettingsModal({
@@ -337,6 +338,7 @@ function SettingsModal({
   onApiBaseChange,
   onReset,
   onSave,
+  errorMessage,
 }: SettingsModalProps) {
   if (!isOpen) return null;
 
@@ -344,6 +346,11 @@ function SettingsModal({
     <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4">
       <div className="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl max-w-md w-full">
         <h2 className="text-xl font-bold mb-4 dark:text-white">Settings</h2>
+        {errorMessage && (
+          <div className="mb-4 p-3 bg-red-100 border border-red-400 text-red-700 rounded">
+            {errorMessage}
+          </div>
+        )}
 
         <div className="mb-4">
           <div className="block text-sm font-medium text-gray-700 dark:text-gray-300 mb-2">
@@ -391,24 +398,25 @@ export function DeckView() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const { data: decksData } = useSWR("/api/decks", fetchDecks);
+  const { data: decksData, error: decksError } = useSWR("/api/decks", fetchDecks);
   const initialCardId = new URLSearchParams(location.search).get("cardId");
   const [isRegenerating, setIsRegenerating] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
   const [newApiBase, setNewApiBase] = useState(getApiBase());
+  const [apiError, setApiError] = useState<string>();
   const [isPlaying, setIsPlaying] = useState(false);
   const [currentAudioIndex, setCurrentAudioIndex] = useState(0);
   const [, setCurrentTime] = useState(0);
   const [, setDuration] = useState(0);
   const audioRefs = useRef<HTMLAudioElement[]>([]);
 
-  const { data: deckConfig } = useSWR(
+  const { data: deckConfig, error: configError } = useSWR(
     deckName ? `/api/decks/${deckName}/config` : null,
     // biome-ignore lint/style/noNonNullAssertion: <explanation>
     () => fetchDeckConfig(deckName!),
   );
 
-  const { data: fetchedCards, mutate: mutateCards } = useSWR(
+  const { data: fetchedCards, mutate: mutateCards, error: cardsError } = useSWR(
     deckName ? `/api/decks/${deckName}/cards` : null,
     // biome-ignore lint/style/noNonNullAssertion: <explanation>
     () => fetchDeckCards(deckName!),
@@ -437,7 +445,7 @@ export function DeckView() {
       : 0,
   );
 
-  const { data: cardInfo, mutate: mutateCardInfo } = useSWR(
+  const { data: cardInfo, mutate: mutateCardInfo, error: cardError } = useSWR(
     cards ? `/api/cards/${cards[currentCardIndex]?.cardId}` : null,
     () => cards && fetchCard(cards[currentCardIndex].cardId),
   );
@@ -463,6 +471,16 @@ export function DeckView() {
       handleRegenerate();
     }
   }, [cardInfo]);
+
+  // Handle API errors
+  useEffect(() => {
+    const error = decksError || configError || cardsError || cardError;
+    if (error) {
+      console.error("API Error:", error);
+      setApiError("Failed to fetch data. Please check your API settings.");
+      setIsSettingsOpen(true);
+    }
+  }, [decksError, configError, cardsError, cardError]);
 
   // biome-ignore lint/correctness/useExhaustiveDependencies: <explanation>
   useEffect(() => {
@@ -526,6 +544,8 @@ export function DeckView() {
       handleNextCard();
     } catch (err) {
       console.error("Failed to submit answer:", err);
+      setApiError("Failed to submit answer. Please check your API settings.");
+      setIsSettingsOpen(true);
     }
   };
 
@@ -538,6 +558,8 @@ export function DeckView() {
       await Promise.all([mutateCardInfo(), mutateCards()]);
     } catch (err) {
       console.error("Failed to regenerate card:", err);
+      setApiError("Failed to regenerate card. Please check your API settings.");
+      setIsSettingsOpen(true);
     } finally {
       setIsRegenerating(false);
     }
@@ -615,10 +637,12 @@ export function DeckView() {
         apiBase={newApiBase}
         onApiBaseChange={(value) => setNewApiBase(value)}
         onReset={() => setApiBase(null)}
+        errorMessage={apiError}
         onSave={() => {
           if (newApiBase !== getApiBase()) {
             setApiBase(newApiBase);
           }
+          setApiError(undefined);
           setIsSettingsOpen(false);
         }}
       />
