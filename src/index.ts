@@ -35,6 +35,7 @@ program
   .description("Initialize deck configuration interactively")
   .option("-c, --config <path>", "Path to config file")
   .option("-d, --debug", "Enable debug mode")
+  .option("-W, --write", "Write configuration to file")
 
   .action(init);
 

@@ -11,6 +11,7 @@ import type { DeckConfig } from "../config/types";
 interface InitOptions {
   debug?: boolean;
   config?: string;
+  write?: boolean;
 }
 
 async function generateDeckConfig(
@@ -122,19 +123,11 @@ export async function init(options: InitOptions = {}) {
     console.log("\nGenerated configuration:");
     console.log(deckConfig);
 
-    // Confirm save
-    const { confirmed } = await Enquirer.prompt<{ confirmed: boolean }>({
-      type: "confirm",
-      name: "confirmed",
-      message: "Would you like to save this configuration?",
-      initial: true,
-    });
-
-    if (confirmed) {
-      // Ensure config directory exists
-      await mkdir(join(homedir(), ".gakuon"), { recursive: true });
-
+    if (options.write) {
       try {
+        // Ensure config directory exists
+        await mkdir(join(homedir(), ".gakuon"), { recursive: true });
+
         // Parse TOML and merge config
         const newDeckConfig = parse(deckConfig);
         config.decks.push(newDeckConfig as unknown as DeckConfig);
@@ -145,6 +138,10 @@ export async function init(options: InitOptions = {}) {
       } catch (error) {
         console.error("Failed to parse or save configuration:", error);
       }
+    } else {
+      console.log("\nTo save this configuration, you can:");
+      console.log("1. Run the command again with -W/--write flag");
+      console.log("2. Manually add it to ~/.gakuon/config.toml");
     }
   } catch (error) {
     console.error("Error during initialization:", error);
