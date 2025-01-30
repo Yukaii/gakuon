@@ -1,4 +1,4 @@
-ARG ANKI_IMAGE=anki-base
+ARG ANKI_IMAGE=ghcr.io/yukaii/gakuon-headless-anki-base
 FROM ${ANKI_IMAGE}
 
 ARG ANKICONNECT_VERSION=24.7.25.0
