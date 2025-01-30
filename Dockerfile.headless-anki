@@ -3,7 +3,9 @@ FROM ${ANKI_IMAGE}
 
 ARG ANKICONNECT_VERSION=24.7.25.0
 
+USER root
 RUN mkdir -p /var/lib/apt/lists/partial && \
+    chmod -R 777 /var/lib/apt/lists/partial && \
     apt-get update && apt-get install --no-install-recommends -y \
     mpv locales curl git ca-certificates jq && \
     rm -rf /var/lib/apt/lists/*
