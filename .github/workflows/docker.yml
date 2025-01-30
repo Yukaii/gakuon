@@ -54,6 +54,15 @@ jobs:
             type=raw,value=${{ inputs.tag }},enable=${{ github.event_name == 'workflow_dispatch' }}
             type=ref,event=tag
 
+      - name: Process version
+        id: version
+        run: |
+          if [[ -n "${{ github.event.release.tag_name }}" && "${{ github.event.release.tag_name }}" == v* ]]; then
+            echo "version=${GITHUB_REF_NAME#v}" >> $GITHUB_OUTPUT
+          else
+            echo "version=${{ inputs.version }}" >> $GITHUB_OUTPUT
+          fi
+
       - name: Build and push Docker image
         id: push
         uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
@@ -64,7 +73,7 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
-            GAKUON_VERSION=${{ github.event.release.tag_name && github.event.release.tag_name != '' && github.event.release.tag_name:1 || inputs.version }}
+            GAKUON_VERSION=${{ steps.version.outputs.version }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
 
