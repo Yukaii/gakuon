@@ -95,7 +95,7 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
-            ANKI_IMAGE=${REGISTRY}/${IMAGE_NAME}-base:${{ inputs.tag }}
+            ANKI_IMAGE=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-base:${{ inputs.tag }}
             QT_VERSION=${{ inputs.qt_version }}
             ANKI_VERSION=${{ inputs.anki_version }}
             ANKICONNECT_VERSION=${{ inputs.ankiconnect_version }}
