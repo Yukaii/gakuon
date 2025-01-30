@@ -3,10 +3,7 @@ FROM debian:bookworm-slim
 ARG ANKICONNECT_VERSION=24.7.25.0
 ARG TARGETARCH
 
-USER root
-RUN mkdir -p /var/lib/apt/lists/partial && \
-    chmod -R 777 /var/lib/apt/lists/partial && \
-    apt-get update && apt-get install --no-install-recommends -y \
+RUN apt-get update && apt-get install --no-install-recommends -y \
     mpv locales curl git ca-certificates jq python3-venv python3-pip && \
     if [ "$TARGETARCH" = "arm64" ]; then \
         apt-get install --no-install-recommends -y \
@@ -36,14 +33,16 @@ RUN mkdir /export && chown -R anki /export
 VOLUME /export
 
 # Install Anki
-RUN python3 -m venv /opt/anki-venv && \
-    if [ "$TARGETARCH" = "arm64" ]; then \
-        /opt/anki-venv/bin/pip install --upgrade pip && \
-        /opt/anki-venv/bin/pip install --upgrade --pre aqt; \
+RUN if [ "$TARGETARCH" = "arm64" ]; then \
+        python3 -m venv --system-site-packages /home/anki/pyenv && \
+        /home/anki/pyenv/bin/pip install --upgrade pip && \
+        /home/anki/pyenv/bin/pip install --upgrade --pre aqt; \
     else \
-        /opt/anki-venv/bin/pip install --upgrade pip && \
-        /opt/anki-venv/bin/pip install --upgrade --pre 'aqt[qt6]'; \
-    fi
+        python3 -m venv /home/anki/pyenv && \
+        /home/anki/pyenv/bin/pip install --upgrade pip && \
+        /home/anki/pyenv/bin/pip install --upgrade --pre 'aqt[qt6]'; \
+    fi && \
+    chown -R anki:anki /home/anki/pyenv
 
 # Plugin installation
 WORKDIR /app
@@ -66,6 +65,6 @@ ENV QMLSCENE_DEVICE=softwarecontext
 ENV FONTCONFIG_PATH=/etc/fonts
 ENV QT_XKB_CONFIG_ROOT=/usr/share/X11/xkb
 ENV QT_QPA_PLATFORM="vnc"
-ENV PATH="/opt/anki-venv/bin:${PATH}"
+ENV PATH="/home/anki/pyenv/bin:${PATH}"
 
 CMD ["anki", "--no-sandbox"]
