@@ -152,3 +152,7 @@ usage_notes.description = "Additional usage notes"
 usage_notes.required = false
 usage_notes.audio = false
 ```
+
+## References
+
+- Thanks to [ThisIsntTheWay/headless-anki](https://github.com/ThisIsntTheWay/headless-anki) for providing the Dockerized Anki implementation that powers our headless Anki server setup

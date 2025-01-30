@@ -1,0 +1,78 @@
+# This Dockerfile is based on ThisIsntTheWay/headless-anki implementation
+# See: https://github.com/ThisIsntTheWay/headless-anki for the original implementation and documentation
+
+FROM debian:bookworm-slim
+
+ARG ANKICONNECT_VERSION=24.7.25.0
+ARG TARGETARCH
+
+RUN apt-get update && apt-get install --no-install-recommends -y \
+    mpv locales curl git ca-certificates jq python3-venv python3-pip && \
+    if [ "$TARGETARCH" = "arm64" ]; then \
+        apt-get install --no-install-recommends -y \
+        python3-pyqt6.qtquick python3-pyqt6.qtwebengine python3-pyqt6.qtmultimedia; \
+    fi && \
+    rm -rf /var/lib/apt/lists/*
+
+RUN useradd -m anki
+
+# Post process
+RUN sed -i -e 's/# en_US.UTF-8 UTF-8/en_US.UTF-8 UTF-8/' /etc/locale.gen && \
+    dpkg-reconfigure --frontend=noninteractive locales && \
+    update-locale LANG=en_US.UTF-8
+
+ENV LANG=en_US.UTF-8 \
+    LANGUAGE=en_US \
+    LC_ALL=en_US.UTF-8
+
+RUN apt-get autoremove -y && \
+    rm -rf /var/lib/apt/lists/*
+
+# Anki volumes
+ADD data /data
+RUN mkdir -p /data/addons21 && chown -R anki /data
+VOLUME /data
+
+RUN mkdir /export && chown -R anki /export
+VOLUME /export
+
+# Add startup script
+COPY startup.sh /app/startup.sh
+RUN chmod +x /app/startup.sh
+
+# Install Anki
+RUN if [ "$TARGETARCH" = "arm64" ]; then \
+        python3 -m venv --system-site-packages /home/anki/pyenv && \
+        /home/anki/pyenv/bin/pip install --upgrade pip && \
+        /home/anki/pyenv/bin/pip install --upgrade --pre aqt; \
+    else \
+        python3 -m venv /home/anki/pyenv && \
+        /home/anki/pyenv/bin/pip install --upgrade pip && \
+        /home/anki/pyenv/bin/pip install --upgrade --pre 'aqt[qt6]'; \
+    fi && \
+    chown -R anki:anki /home/anki/pyenv
+
+# Plugin installation
+WORKDIR /app
+
+RUN git clone -b ${ANKICONNECT_VERSION} --single-branch -n --depth=1 --filter=tree:0 \
+    https://git.foosoft.net/alex/anki-connect.git && \
+    cd anki-connect && git sparse-checkout set --no-cone plugin && git checkout
+
+RUN chown -R anki:anki /app/anki-connect/plugin && \
+    ln -s -f /app/anki-connect/plugin /data/addons21/AnkiConnectDev
+
+# Edit AnkiConnect config
+RUN jq '.webBindAddress = "0.0.0.0"' /data/addons21/AnkiConnectDev/config.json > tmp_file && \
+    mv tmp_file /data/addons21/AnkiConnectDev/config.json
+
+USER anki
+
+ENV ANKICONNECT_WILDCARD_ORIGIN="0"
+ENV QMLSCENE_DEVICE=softwarecontext
+ENV FONTCONFIG_PATH=/etc/fonts
+ENV QT_XKB_CONFIG_ROOT=/usr/share/X11/xkb
+ENV QT_QPA_PLATFORM="offscreen"
+ENV PATH="/home/anki/pyenv/bin:${PATH}"
+
+CMD ["/bin/bash", "/app/startup.sh"]

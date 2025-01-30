@@ -7,16 +7,7 @@ on:
         description: 'Image tag'
         required: true
         type: string
-      qt_version:
-        description: 'QT version'
-        required: false
-        type: string
-        default: '6'
-      anki_version:
-        description: 'Anki version'
-        required: false
-        type: string
-        default: '24.06.3'
+        default: 'main'
       ankiconnect_version:
         description: 'AnkiConnect version'
         required: false
@@ -25,7 +16,6 @@ on:
 
 env:
   REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}-headless-anki
 
 jobs:
   build-and-push-image:
@@ -37,16 +27,14 @@ jobs:
       attestations: write
 
     steps:
-      - name: Checkout repository
-        uses: actions/checkout@v4
-        with:
-          repository: ThisIsntTheWay/headless-anki
+      - name: Set image name
+        id: image-name
+        run: |
+          echo "name=${GITHUB_REPOSITORY,,}-headless-anki" >> $GITHUB_OUTPUT
 
-      - name: Set up QEMU
-        uses: docker/setup-qemu-action@v3
-
-      - name: Set up Docker Buildx
-        uses: docker/setup-buildx-action@v3
+      - name: Set environment variables
+        run: |
+          echo "IMAGE_NAME=${{ steps.image-name.outputs.name }}" >> $GITHUB_ENV
 
       - name: Log in to the Container registry
         uses: docker/login-action@65b78e6e13532edd9afa3aa52ac7964289d1a9c1
@@ -54,6 +42,15 @@ jobs:
           registry: ${{ env.REGISTRY }}
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up QEMU
+        uses: docker/setup-qemu-action@v3
+
+      - name: Set up Docker Buildx
+        uses: docker/setup-buildx-action@v3
 
       - name: Extract metadata (tags, labels) for Docker
         id: meta
@@ -68,13 +65,12 @@ jobs:
         uses: docker/build-push-action@f2a1d5e99d037542a71f64918e516c093c6f3fc4
         with:
           context: .
+          file: ./deployment/Dockerfile.headless-anki
           platforms: linux/amd64,linux/arm64
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
-            QT_VERSION=${{ inputs.qt_version }}
-            ANKI_VERSION=${{ inputs.anki_version }}
             ANKICONNECT_VERSION=${{ inputs.ankiconnect_version }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
