@@ -8,16 +8,6 @@ on:
         required: true
         type: string
         default: 'main'
-      qt_version:
-        description: 'QT version'
-        required: false
-        type: string
-        default: '6'
-      anki_version:
-        description: 'Anki version'
-        required: false
-        type: string
-        default: '24.06.3'
       ankiconnect_version:
         description: 'AnkiConnect version'
         required: false
@@ -56,26 +46,11 @@ jobs:
       - name: Checkout repository
         uses: actions/checkout@v4
 
-      - name: Checkout Anki repository
-        uses: actions/checkout@v4
-        with:
-          repository: ankitects/anki
-          path: anki
-
       - name: Set up QEMU
         uses: docker/setup-qemu-action@v3
 
       - name: Set up Docker Buildx
         uses: docker/setup-buildx-action@v3
-
-      - name: Build Anki Docker image
-        run: |
-          cd anki
-          docker buildx create --use
-          docker run --privileged --rm tonistiigi/binfmt --install all
-          DOCKER_BUILDKIT=1 docker buildx build --platform linux/amd64,linux/arm64 --push \
-            --tag ${REGISTRY}/${IMAGE_NAME}-base:${{ inputs.tag }} \
-            --file docs/docker/Dockerfile .
 
       - name: Extract metadata (tags, labels) for Docker
         id: meta
@@ -96,9 +71,6 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           build-args: |
-            ANKI_IMAGE=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-base:${{ inputs.tag }}
-            QT_VERSION=${{ inputs.qt_version }}
-            ANKI_VERSION=${{ inputs.anki_version }}
             ANKICONNECT_VERSION=${{ inputs.ankiconnect_version }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
