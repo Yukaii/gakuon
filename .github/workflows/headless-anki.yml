@@ -121,11 +121,22 @@ jobs:
           tags: |
             type=raw,value=${{ inputs.tag }}
 
+      - name: Set image name
+        id: image-name
+        run: |
+          echo "name=${GITHUB_REPOSITORY,,}-headless-anki" >> $GITHUB_OUTPUT
+
+      - name: Set environment variables
+        run: |
+          echo "IMAGE_NAME=${{ steps.image-name.outputs.name }}" >> $GITHUB_ENV
+
       - name: Create manifest list and push
         working-directory: /tmp/digests
         run: |
-          docker buildx imagetools create $(jq -cr '.tags | map("-t " + .) | join(" ")' <<< "$DOCKER_METADATA_OUTPUT_JSON") \
-            $(printf '${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@sha256:%s ' *)
+          for digest in *; do
+            digests="$digests ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}@sha256:$digest"
+          done
+          docker buildx imagetools create -t ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ inputs.tag }} $digests
 
       - name: Inspect image
         run: |
