@@ -1,3 +1,6 @@
+# This Dockerfile is based on ThisIsntTheWay/headless-anki implementation
+# See: https://github.com/ThisIsntTheWay/headless-anki for the original implementation and documentation
+
 FROM debian:bookworm-slim
 
 ARG ANKICONNECT_VERSION=24.7.25.0
