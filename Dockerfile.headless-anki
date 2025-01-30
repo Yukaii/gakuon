@@ -4,7 +4,12 @@ ARG ANKICONNECT_VERSION=24.7.25.0
 ARG TARGETARCH
 
 RUN apt-get update && apt-get install --no-install-recommends -y \
-    mpv locales curl git ca-certificates jq python3-venv python3-pip && \
+    mpv locales curl git ca-certificates jq python3-venv python3-pip \
+    libx11-xcb1 libxcb-xinerama0 libxcb-icccm4 libxcb-image0 \
+    libxcb-keysyms1 libxcb-randr0 libxcb-render0 libxcb-render-util0 \
+    libxcb-shape0 libxcb-shm0 libxkbcommon-x11-0 \
+    libxcb1 libxcb-glx0 libxcb-xfixes0 x11-utils \
+    xvfb libqt6gui6 qt6-qpa-plugins && \
     if [ "$TARGETARCH" = "arm64" ]; then \
         apt-get install --no-install-recommends -y \
         python3-pyqt6.qtquick python3-pyqt6.qtwebengine python3-pyqt6.qtmultimedia; \
@@ -64,7 +69,7 @@ ENV ANKICONNECT_WILDCARD_ORIGIN="0"
 ENV QMLSCENE_DEVICE=softwarecontext
 ENV FONTCONFIG_PATH=/etc/fonts
 ENV QT_XKB_CONFIG_ROOT=/usr/share/X11/xkb
-ENV QT_QPA_PLATFORM="vnc"
+ENV QT_QPA_PLATFORM="offscreen"
 ENV PATH="/home/anki/pyenv/bin:${PATH}"
 
 CMD ["anki", "--no-sandbox"]
