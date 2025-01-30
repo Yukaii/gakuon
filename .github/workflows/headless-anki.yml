@@ -70,11 +70,12 @@ jobs:
 
       - name: Build Anki Docker image
         run: |
-          cd anki/.buildkite/linux/docker
+          cd anki
           docker buildx create --use
           docker run --privileged --rm tonistiigi/binfmt --install all
           DOCKER_BUILDKIT=1 docker buildx build --platform linux/amd64,linux/arm64 --push \
-            --tag ${REGISTRY}/${IMAGE_NAME}-base:${{ inputs.tag }} .
+            --tag ${REGISTRY}/${IMAGE_NAME}-base:${{ inputs.tag }} \
+            --file docs/docker/Dockerfile .
 
       - name: Extract metadata (tags, labels) for Docker
         id: meta
