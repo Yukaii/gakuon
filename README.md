@@ -37,10 +37,23 @@ Perfect for:
 
 ## Installation
 
+
+
+### Install gakuon
 ```bash
 npm install -g gakuon
 ```
 
+### Install ffmpeg (OSX/Linux) 
+```
+brew update
+```
+```
+brew upgrade
+```
+```
+brew install ffmpeg
+```
 ## Usage
 
 ```bash
