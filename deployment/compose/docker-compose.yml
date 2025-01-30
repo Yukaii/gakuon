@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  anki:
+    image: ghcr.io/yukaii/gakuon-headless-anki:main
+    volumes:
+      - ./data:/data
+      - ./export:/export
+    ports:
+      - "8765:8765"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8765"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  gakuon:
+    image: ghcr.io/yukaii/gakuon:latest
+    environment:
+      - GAKUON_ANKI_HOST=http://anki:8765
+    ports:
+      - "4989:4989"
+    depends_on:
+      anki:
+        condition: service_healthy
+    command: ["serve", "--serve-client", "--port", "4989"]
