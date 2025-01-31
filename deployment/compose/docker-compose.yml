@@ -21,7 +21,12 @@ services:
       - GAKUON_ANKI_HOST=http://anki:8765
     ports:
       - "4989:4989"
+    volumes:
+      - gakuon_config:/root/.gakuon
     depends_on:
       anki:
         condition: service_healthy
     command: ["serve", "--serve-client", "--port", "4989"]
+
+volumes:
+  gakuon_config:
