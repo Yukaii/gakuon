@@ -39,10 +39,12 @@ export function createServer(deps: ServerDependencies) {
     const possiblePaths = [
       // Development path
       join(__dirname, "../../client/dist/client"),
-      // Installed package path
+      // Local installed package path
       join(__dirname, "../../../client"),
       // Built package path
       join(__dirname, "../client"),
+      // Global npm installation path
+      join(process.execPath, "../../lib/node_modules/gakuon/dist/client"),
     ];
 
     let clientPath = null;
@@ -60,6 +62,10 @@ export function createServer(deps: ServerDependencies) {
 
     if (!clientPath) {
       console.warn("Could not find client files to serve");
+      if (deps.debug) {
+        console.debug("Searched paths:", possiblePaths);
+        console.debug("Node executable path:", process.execPath);
+      }
     } else {
       app.use(express.static(clientPath));
     }
