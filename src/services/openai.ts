@@ -12,9 +12,9 @@ export class OpenAIService {
 
   constructor(
     private apiKey: string,
-    private baseUrl: string = "https://api.openai.com/v1",
-    private chatModel: string = "gpt-4o",
-    private ttsModel: string = "tts-1",
+    private baseUrl = "https://api.openai.com/v1",
+    private chatModel = "gpt-4o",
+    private ttsModel = "tts-1",
     private debug = false,
   ) {
     this.client = new OpenAI({
