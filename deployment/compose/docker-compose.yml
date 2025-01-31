@@ -4,7 +4,8 @@ services:
   anki:
     image: ghcr.io/yukaii/gakuon-headless-anki:main
     volumes:
-      - ./data:/data
+    # bring your own data
+    #   - ./data:/data
       - ./export:/export
     ports:
       - "8765:8765"
@@ -17,8 +18,6 @@ services:
 
   gakuon:
     image: ghcr.io/yukaii/gakuon:latest
-    environment:
-      - GAKUON_ANKI_HOST=http://anki:8765
     ports:
       - "4989:4989"
     volumes:
