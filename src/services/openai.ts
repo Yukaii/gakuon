@@ -102,7 +102,7 @@ ${Object.entries(deckConfig.responseFields)
       this.debugLog(fullPrompt);
 
       const completion = await this.client.chat.completions.create({
-        model: "gpt-4-turbo-preview",
+        model: "gpt-4o",
         messages: [{ role: "user", content: fullPrompt }],
         response_format: { type: "json_object" },
       });
