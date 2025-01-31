@@ -66,7 +66,7 @@ export async function learn(options: LearnOptions = {}) {
     config.global.openai.baseUrl,
     config.global.openai.chatModel,
     config.global.openai.ttsModel,
-    options.debug
+    options.debug,
   );
   const contentManager = new ContentManager(
     ankiService,

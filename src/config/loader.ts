@@ -21,7 +21,7 @@ export const DEFAULT_CONFIG: GakuonConfig = {
       baseUrl: "https://api.openai.com/v1",
       chatModel: "gpt-4o",
       initModel: "gpt-4o",
-      ttsModel: "tts-1"
+      ttsModel: "tts-1",
     },
     cardOrder: {
       queueOrder: QueueOrder.LEARNING_REVIEW_NEW,
@@ -43,8 +43,8 @@ const ENV_VAR_MAPPINGS = {
   "global.cardOrder.newCardOrder": "GAKUON_NEW_CARD_ORDER",
   "global.openai.baseUrl": "GAKUON_OPENAI_BASE_URL",
   "global.openai.chatModel": "GAKUON_OPENAI_CHAT_MODEL",
-  "global.openai.initModel": "GAKUON_OPENAI_INIT_MODEL", 
-  "global.openai.ttsModel": "GAKUON_OPENAI_TTS_MODEL"
+  "global.openai.initModel": "GAKUON_OPENAI_INIT_MODEL",
+  "global.openai.ttsModel": "GAKUON_OPENAI_TTS_MODEL",
 };
 
 // Keys that should undergo environment variable interpolation
@@ -91,19 +91,33 @@ function processRawConfig(rawConfig: any): GakuonConfig {
   const reviewOrder = process.env.GAKUON_REVIEW_ORDER;
   const newCardOrder = process.env.GAKUON_NEW_CARD_ORDER;
 
+  // Ensure openai config exists with defaults
+  const openaiConfig = {
+    baseUrl: DEFAULT_CONFIG.global.openai.baseUrl,
+    chatModel: DEFAULT_CONFIG.global.openai.chatModel,
+    initModel: DEFAULT_CONFIG.global.openai.initModel,
+    ttsModel: DEFAULT_CONFIG.global.openai.ttsModel,
+    ...(withEnvVars.global?.openai || {}),
+  };
+
   return {
     ...withEnvVars,
     global: {
       ...withEnvVars.global,
+      openai: openaiConfig,
       cardOrder: {
         queueOrder:
-          (queueOrder as QueueOrder) || withEnvVars.global.cardOrder.queueOrder,
+          (queueOrder as QueueOrder) ||
+          withEnvVars.global.cardOrder?.queueOrder ||
+          DEFAULT_CONFIG.global.cardOrder.queueOrder,
         reviewOrder:
           (reviewOrder as ReviewSortOrder) ||
-          withEnvVars.global.cardOrder.reviewOrder,
+          withEnvVars.global.cardOrder?.reviewOrder ||
+          DEFAULT_CONFIG.global.cardOrder.reviewOrder,
         newCardOrder:
           (newCardOrder as NewCardGatherOrder) ||
-          withEnvVars.global.cardOrder.newCardOrder,
+          withEnvVars.global.cardOrder?.newCardOrder ||
+          DEFAULT_CONFIG.global.cardOrder.newCardOrder,
       },
     },
   };

@@ -25,7 +25,7 @@ export async function test(options: TestOptions = {}) {
       config.global.openai.baseUrl,
       config.global.openai.chatModel,
       config.global.openai.ttsModel,
-      debug
+      debug,
     );
 
     // Get available decks

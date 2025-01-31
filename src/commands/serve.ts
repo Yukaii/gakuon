@@ -26,7 +26,7 @@ export async function serve(options: ServeOptions = {}) {
     config.global.openai.baseUrl,
     config.global.openai.chatModel,
     config.global.openai.ttsModel,
-    debug
+    debug,
   );
   const contentManager = new ContentManager(ankiService, openaiService, debug);
 
