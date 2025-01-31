@@ -82,17 +82,6 @@ gakuon serve --debug        # Enable debug logging
 gakuon serve --serve-client # Also serve builtint PWA client app
 ```
 
-### `test`
-
-Test deck configuration with sample cards:
-
-```bash
-gakuon test              # Test default or selected deck
-gakuon test --deck NAME  # Test specific deck
-gakuon test -n 5        # Test with 5 sample cards (default: 3)
-gakuon test --debug     # Enable debug logging
-```
-
 ## Development
 
 ```bash
@@ -138,12 +127,8 @@ For more detailed configuration including deck-specific settings, use `~/.gakuon
 [global]
 ankiHost = "http://localhost:8765"
 openaiApiKey = "${OPENAI_API_KEY}"  # Will use OPENAI_API_KEY environment variable
-ttsVoice = "alloy"
-
-# Optional field. Using with CLI learn command
-defaultDeck = "Core 2k/6k Optimized Japanese Vocabulary with Sound Part 01"
-
-[global.cardOrder]
+ttsVoice = "alloy"GAKUON_OPENAI_CHAT_MODEL="gpt-4o"      # Model for chat completions# Optional field. Using with CLI learn command
+defaultDeck = "Core 2k/6k Optimized Japanese Vocabulary with Sound Part 01"GAKUON_OPENAI_INIT_MODEL="gpt-4o"      # Model for initialization[global.cardOrder]
 queueOrder = "learning_review_new"
 reviewOrder = "due_date_random"
 newCardOrder = "deck"
@@ -162,11 +147,9 @@ Given a Japanese vocabulary card:
 - Context: ${context}
 
 Generate helpful learning content.
-"""
-
-[decks.responseFields]
+"""chatModel = "gpt-4o"[decks.responseFields]
 example.description = "A natural example sentence using the word"
-example.required = true
+initModel = "gpt-4o"
 example.audio = true
 
 explanation_jp.description = "Simple explanation in Japanese"

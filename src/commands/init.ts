@@ -83,7 +83,7 @@ Requirements:
 5. Start output directly with [[decks]]`;
 
   const completion = await openai.client.chat.completions.create({
-    model: "gpt-4o-mini",
+    model: config.global.openai.initModel,
     messages: [{ role: "user", content: prompt }],
   });
 

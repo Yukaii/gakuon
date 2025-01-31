@@ -29,12 +29,20 @@ export class PromptError extends Error {
   }
 }
 
+export interface OpenAIConfig {
+  baseUrl: string;
+  chatModel: string;
+  initModel: string;
+  ttsModel: string;
+}
+
 export interface GakuonConfig {
   global: {
     ankiHost: string;
     openaiApiKey: string;
     ttsVoice: string;
     defaultDeck?: string;
+    openai: OpenAIConfig;
     cardOrder: {
       queueOrder: QueueOrder;
       reviewOrder: ReviewSortOrder;

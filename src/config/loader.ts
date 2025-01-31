@@ -17,6 +17,12 @@ export const DEFAULT_CONFIG: GakuonConfig = {
     ankiHost: "http://localhost:8765",
     openaiApiKey: "${OPENAI_API_KEY}",
     ttsVoice: "alloy",
+    openai: {
+      baseUrl: "https://api.openai.com/v1",
+      chatModel: "gpt-4o",
+      initModel: "gpt-4o",
+      ttsModel: "tts-1"
+    },
     cardOrder: {
       queueOrder: QueueOrder.LEARNING_REVIEW_NEW,
       reviewOrder: ReviewSortOrder.DUE_DATE_RANDOM,
@@ -35,6 +41,10 @@ const ENV_VAR_MAPPINGS = {
   "global.cardOrder.queueOrder": "GAKUON_QUEUE_ORDER",
   "global.cardOrder.reviewOrder": "GAKUON_REVIEW_ORDER",
   "global.cardOrder.newCardOrder": "GAKUON_NEW_CARD_ORDER",
+  "global.openai.baseUrl": "GAKUON_OPENAI_BASE_URL",
+  "global.openai.chatModel": "GAKUON_OPENAI_CHAT_MODEL",
+  "global.openai.initModel": "GAKUON_OPENAI_INIT_MODEL", 
+  "global.openai.ttsModel": "GAKUON_OPENAI_TTS_MODEL"
 };
 
 // Keys that should undergo environment variable interpolation

@@ -12,9 +12,15 @@ export class OpenAIService {
 
   constructor(
     private apiKey: string,
+    private baseUrl: string = "https://api.openai.com/v1",
+    private chatModel: string = "gpt-4o",
+    private ttsModel: string = "tts-1",
     private debug = false,
   ) {
-    this.client = new OpenAI({ apiKey });
+    this.client = new OpenAI({
+      apiKey,
+      baseURL: baseUrl,
+    });
   }
 
   // biome-ignore lint/suspicious/noExplicitAny: <explanation>
@@ -102,7 +108,7 @@ ${Object.entries(deckConfig.responseFields)
       this.debugLog(fullPrompt);
 
       const completion = await this.client.chat.completions.create({
-        model: "gpt-4o",
+        model: this.chatModel,
         messages: [{ role: "user", content: fullPrompt }],
         response_format: { type: "json_object" },
       });
@@ -140,7 +146,7 @@ ${Object.entries(deckConfig.responseFields)
     voice: string,
   ): Promise<string> {
     const mp3 = await this.client.audio.speech.create({
-      model: "tts-1",
+      model: this.ttsModel,
       // biome-ignore lint/suspicious/noExplicitAny: <explanation>
       voice: voice as any,
       input: text,
