@@ -2,6 +2,7 @@
 export default {
   testEnvironment: "node",
   transform: {
-    "^.+.tsx?$": ["ts-jest",{}],
+    "^.+.tsx?$": ["ts-jest", {}],
   },
+  testMatch: ["**/*.test.[jt]s?(x)"],
 };
