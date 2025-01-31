@@ -63,7 +63,10 @@ export async function learn(options: LearnOptions = {}) {
   const ankiService = new AnkiService(config.global.ankiHost, options.debug);
   const openaiService = new OpenAIService(
     config.global.openaiApiKey,
-    options.debug,
+    config.global.openai.baseUrl,
+    config.global.openai.chatModel,
+    config.global.openai.ttsModel,
+    options.debug
   );
   const contentManager = new ContentManager(
     ankiService,

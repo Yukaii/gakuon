@@ -20,7 +20,13 @@ export async function test(options: TestOptions = {}) {
     // Initialize services
     const config = loadConfig(options.config);
     const ankiService = new AnkiService(config.global.ankiHost, debug);
-    const openaiService = new OpenAIService(config.global.openaiApiKey, debug);
+    const openaiService = new OpenAIService(
+      config.global.openaiApiKey,
+      config.global.openai.baseUrl,
+      config.global.openai.chatModel,
+      config.global.openai.ttsModel,
+      debug
+    );
 
     // Get available decks
     const decks = await ankiService.getDeckNames();

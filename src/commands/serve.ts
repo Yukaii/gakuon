@@ -21,7 +21,13 @@ export async function serve(options: ServeOptions = {}) {
 
   // Initialize services
   const ankiService = new AnkiService(config.global.ankiHost, debug);
-  const openaiService = new OpenAIService(config.global.openaiApiKey, debug);
+  const openaiService = new OpenAIService(
+    config.global.openaiApiKey,
+    config.global.openai.baseUrl,
+    config.global.openai.chatModel,
+    config.global.openai.ttsModel,
+    debug
+  );
   const contentManager = new ContentManager(ankiService, openaiService, debug);
 
   // Create and start server
