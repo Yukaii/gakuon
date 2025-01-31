@@ -121,6 +121,9 @@ OPENAI_API_KEY="sk-..."                    # OpenAI API key
 GAKUON_TTS_VOICE="alloy"                   # TTS voice to use
 GAKUON_DEFAULT_DECK="MyDeck"               # Default deck name
 
+GAKUON_OPENAI_CHAT_MODEL="gpt-4o" # Model for chat completions
+GAKUON_OPENAI_INIT_MODEL="gpt-4o" # Model for initialization
+
 # Card Order Settings
 GAKUON_QUEUE_ORDER="learning_review_new"   # Options: learning_review_new, review_learning_new, new_learning_review, mixed
 GAKUON_REVIEW_ORDER="due_date_random"      # Options: due_date_random, due_date_deck, deck_due_date, ascending_intervals, descending_intervals, ascending_ease, descending_ease, relative_overdueness
@@ -139,9 +142,14 @@ For more detailed configuration including deck-specific settings, use `~/.gakuon
 ankiHost = "http://localhost:8765"
 openaiApiKey = "${OPENAI_API_KEY}"  # Will use OPENAI_API_KEY environment variable
 ttsVoice = "alloy"
-
 # Optional field. Using with CLI learn command
 defaultDeck = "Core 2k/6k Optimized Japanese Vocabulary with Sound Part 01"
+
+[global.openai]
+baseUrl = "https://api.openai.com/v1"
+chatModel = "gpt-4o"
+initModel = "gpt-4o"
+ttsModel = "tts-1"
 
 [global.cardOrder]
 queueOrder = "learning_review_new"
@@ -163,7 +171,6 @@ Given a Japanese vocabulary card:
 
 Generate helpful learning content.
 """
-
 [decks.responseFields]
 example.description = "A natural example sentence using the word"
 example.required = true

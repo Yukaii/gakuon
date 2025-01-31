@@ -83,7 +83,7 @@ Requirements:
 5. Start output directly with [[decks]]`;
 
   const completion = await openai.client.chat.completions.create({
-    model: "gpt-4o-mini",
+    model: config.global.openai.initModel,
     messages: [{ role: "user", content: prompt }],
   });
 
@@ -97,7 +97,13 @@ export async function init(options: InitOptions = {}) {
     // Initialize services
     const config = loadConfig(options.config);
     const ankiService = new AnkiService(config.global.ankiHost, debug);
-    const openaiService = new OpenAIService(config.global.openaiApiKey, debug);
+    const openaiService = new OpenAIService(
+      config.global.openaiApiKey,
+      config.global.openai.baseUrl,
+      config.global.openai.chatModel,
+      config.global.openai.ttsModel,
+      debug,
+    );
 
     // Get available decks
     const decks = await ankiService.getDeckNames();

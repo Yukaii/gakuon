@@ -3,6 +3,12 @@ ankiHost = "http://localhost:8765"
 openaiApiKey = "${OPENAI_API_KEY}"
 ttsVoice = "alloy"
 
+[global.openai]
+baseUrl = "https://api.openai.com/v1"
+chatModel = "gpt-4o"
+initModel = "gpt-4o"
+ttsModel = "tts-1"
+
 [global.cardOrder]
 queueOrder = "learning_review_new"
 reviewOrder = "due_date_random"
