@@ -3,6 +3,7 @@ import { Command } from "commander";
 import { learn } from "./commands/learn";
 import { init } from "./commands/init";
 import { serve } from "./commands/serve";
+import { test } from "./commands/test";
 import { BANNER } from "./utils/banner";
 import { readFileSync } from "node:fs";
 import { join } from "node:path";
@@ -47,5 +48,14 @@ program
   .option("--serve-client", "Serve built client app from dist/client")
   .option("-c, --config <path>", "Path to config file")
   .action(serve);
+
+program
+  .command("test")
+  .description("Test deck configuration with sample cards")
+  .option("-d, --debug", "Enable debug mode")
+  .option("-c, --config <path>", "Path to config file")
+  .option("-n, --samples <number>", "Number of sample cards to test", "3")
+  .option("--deck <name>", "Specify deck to test")
+  .action(test);
 
 program.parse();
