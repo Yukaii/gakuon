@@ -1,0 +1,9 @@
+[global]
+ankiHost = "http://localhost:8765"
+openaiApiKey = "${OPENAI_API_KEY}"
+ttsVoice = "alloy"
+
+[global.cardOrder]
+queueOrder = "learning_review_new"
+reviewOrder = "due_date_random"
+newCardOrder = "deck"
