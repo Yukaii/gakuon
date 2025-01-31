@@ -22,6 +22,8 @@ services:
       - "4989:4989"
     volumes:
       - gakuon_config:/root/.gakuon
+    environment:
+      - GAKUON_ANKI_HOST=http://anki:8765
     depends_on:
       anki:
         condition: service_healthy

@@ -26,13 +26,32 @@ export const DEFAULT_CONFIG: GakuonConfig = {
   decks: [],
 };
 
-// Define allowed keys for environment variable interpolation
-const ALLOWED_ENV_KEYS = new Set(["global.openaiApiKey"]);
+// Define environment variable mappings for global config
+const ENV_VAR_MAPPINGS = {
+  "global.ankiHost": "GAKUON_ANKI_HOST",
+  "global.openaiApiKey": "OPENAI_API_KEY",
+  "global.ttsVoice": "GAKUON_TTS_VOICE",
+  "global.defaultDeck": "GAKUON_DEFAULT_DECK",
+  "global.cardOrder.queueOrder": "GAKUON_QUEUE_ORDER",
+  "global.cardOrder.reviewOrder": "GAKUON_REVIEW_ORDER",
+  "global.cardOrder.newCardOrder": "GAKUON_NEW_CARD_ORDER"
+};
+
+// Keys that should undergo environment variable interpolation
+const ALLOWED_ENV_KEYS = new Set(Object.keys(ENV_VAR_MAPPINGS));
 
 function processConfigValues(obj: any, path: string[] = []): any {
   if (typeof obj === "string") {
     const fullPath = path.join(".");
-    return ALLOWED_ENV_KEYS.has(fullPath) ? interpolateEnvVars(obj) : obj;
+    if (ALLOWED_ENV_KEYS.has(fullPath)) {
+      const envVar = ENV_VAR_MAPPINGS[fullPath as keyof typeof ENV_VAR_MAPPINGS];
+      const envValue = process.env[envVar];
+      if (envValue !== undefined) {
+        return envValue;
+      }
+      return interpolateEnvVars(obj);
+    }
+    return obj;
   }
 
   if (Array.isArray(obj)) {
@@ -53,11 +72,23 @@ function processConfigValues(obj: any, path: string[] = []): any {
 }
 
 function processRawConfig(rawConfig: any): GakuonConfig {
+  // Process environment variables first
   const withEnvVars = processConfigValues(rawConfig);
+
+  // Handle enum conversions for card order settings from env vars
+  const queueOrder = process.env.GAKUON_QUEUE_ORDER;
+  const reviewOrder = process.env.GAKUON_REVIEW_ORDER;
+  const newCardOrder = process.env.GAKUON_NEW_CARD_ORDER;
+
   return {
     ...withEnvVars,
     global: {
       ...withEnvVars.global,
+      cardOrder: {
+        queueOrder: queueOrder as QueueOrder || withEnvVars.global.cardOrder.queueOrder,
+        reviewOrder: reviewOrder as ReviewSortOrder || withEnvVars.global.cardOrder.reviewOrder,
+        newCardOrder: newCardOrder as NewCardGatherOrder || withEnvVars.global.cardOrder.newCardOrder,
+      },
     },
   };
 }
@@ -100,8 +131,11 @@ function reverseProcessConfigValues(obj: any, path: string[] = []): any {
   if (typeof obj === "string") {
     const fullPath = path.join(".");
     if (ALLOWED_ENV_KEYS.has(fullPath)) {
-      const envValue = process.env.OPENAI_API_KEY;
-      return obj === envValue ? "${OPENAI_API_KEY}" : obj;
+      const envVar = ENV_VAR_MAPPINGS[fullPath as keyof typeof ENV_VAR_MAPPINGS];
+      const envValue = process.env[envVar];
+      if (obj === envValue) {
+        return `\${${envVar}}`;
+      }
     }
     return obj;
   }

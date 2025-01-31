@@ -95,24 +95,42 @@ bun run start serve -d
 bun run dev:client
 ```
 
-## Example config
+## Configuration
 
-`~/.gakuon/config.toml`
+Gakuon can be configured using either environment variables (for global settings) or a TOML configuration file (for both global and deck-specific settings).
+
+### Environment Variables
+
+Global settings can be configured using these environment variables:
+
+```bash
+# Global Settings
+GAKUON_ANKI_HOST="http://localhost:8765"  # Anki-Connect host
+OPENAI_API_KEY="sk-..."                    # OpenAI API key
+GAKUON_TTS_VOICE="alloy"                   # TTS voice to use
+GAKUON_DEFAULT_DECK="MyDeck"               # Default deck name
+
+# Card Order Settings
+GAKUON_QUEUE_ORDER="learning_review_new"   # Options: learning_review_new, review_learning_new, new_learning_review, mixed
+GAKUON_REVIEW_ORDER="due_date_random"      # Options: due_date_random, due_date_deck, deck_due_date, ascending_intervals, descending_intervals, ascending_ease, descending_ease, relative_overdueness
+GAKUON_NEW_CARD_ORDER="deck"               # Options: deck, deck_random_notes, ascending_position, descending_position, random_notes, random_cards
+
+# Base64 encoded full config (optional)
+BASE64_GAKUON_CONFIG="..."                 # Base64 encoded TOML config
+```
+
+### TOML Configuration File
+
+For more detailed configuration including deck-specific settings, use `~/.gakuon/config.toml`:
 
 ```toml
 [global]
 ankiHost = "http://localhost:8765"
-
-# Set environment variable OPENAI_API_KEY or use other key
-openaiApiKey = "${OPENAI_API_KEY}"
-# or openaiApiKey = "$OPENAI_API_KEY"
-# or openaiApiKey = "sk-proj-123123123123"
-# gakuon will perform a variable substitution for you
-# So you can safely commit this config file into your git repo
+openaiApiKey = "${OPENAI_API_KEY}"  # Will use OPENAI_API_KEY environment variable
 ttsVoice = "alloy"
 
-# optional setup
-# defaultDeck = "Core 2k/6k Optimized Japanese Vocabulary with Sound Part 01"
+# Optional field. Using with CLI learn command
+defaultDeck = "Core 2k/6k Optimized Japanese Vocabulary with Sound Part 01"
 
 [global.cardOrder]
 queueOrder = "learning_review_new"
