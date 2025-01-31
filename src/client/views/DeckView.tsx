@@ -602,7 +602,16 @@ export function DeckView() {
           <p>
             This deck is missing configuration. Please add a configuration for
             this deck in your ~/.gakuon/config.toml file or choose another deck.
-            Check the documentation for configuration examples.
+            Check the{" "}
+            <a
+              href="https://github.com/Yukaii/gakuon?tab=readme-ov-file#configuration"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-yellow-800 underline hover:text-yellow-900"
+            >
+              configuration documentation
+            </a>{" "}
+            for examples.
           </p>
         </div>
       )}
