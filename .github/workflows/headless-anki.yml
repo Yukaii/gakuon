@@ -7,7 +7,7 @@ on:
         description: 'Image tag'
         required: true
         type: string
-        default: 'main'
+        default: 'latest'
       ankiconnect_version:
         description: 'AnkiConnect version'
         required: false
