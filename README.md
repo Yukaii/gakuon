@@ -82,6 +82,17 @@ gakuon serve --debug        # Enable debug logging
 gakuon serve --serve-client # Also serve builtint PWA client app
 ```
 
+### `test`
+
+Test deck configuration with sample cards:
+
+```bash
+gakuon test              # Test default or selected deck
+gakuon test --deck NAME  # Test specific deck
+gakuon test -n 5        # Test with 5 sample cards (default: 3)
+gakuon test --debug     # Enable debug logging
+```
+
 ## Development
 
 ```bash
