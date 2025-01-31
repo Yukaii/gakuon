@@ -398,7 +398,10 @@ export function DeckView() {
   const location = useLocation();
   const navigate = useNavigate();
 
-  const { data: decksData, error: decksError } = useSWR("/api/decks", fetchDecks);
+  const { data: decksData, error: decksError } = useSWR(
+    "/api/decks",
+    fetchDecks,
+  );
   const initialCardId = new URLSearchParams(location.search).get("cardId");
   const [isRegenerating, setIsRegenerating] = useState(false);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
@@ -416,7 +419,11 @@ export function DeckView() {
     () => fetchDeckConfig(deckName!),
   );
 
-  const { data: fetchedCards, mutate: mutateCards, error: cardsError } = useSWR(
+  const {
+    data: fetchedCards,
+    mutate: mutateCards,
+    error: cardsError,
+  } = useSWR(
     deckName ? `/api/decks/${deckName}/cards` : null,
     // biome-ignore lint/style/noNonNullAssertion: <explanation>
     () => fetchDeckCards(deckName!),
@@ -445,7 +452,11 @@ export function DeckView() {
       : 0,
   );
 
-  const { data: cardInfo, mutate: mutateCardInfo, error: cardError } = useSWR(
+  const {
+    data: cardInfo,
+    mutate: mutateCardInfo,
+    error: cardError,
+  } = useSWR(
     cards ? `/api/cards/${cards[currentCardIndex]?.cardId}` : null,
     () => cards && fetchCard(cards[currentCardIndex].cardId),
   );
@@ -467,14 +478,23 @@ export function DeckView() {
   };
 
   useEffect(() => {
-    if (cardInfo && (!cardInfo.audioUrls || cardInfo.audioUrls.length === 0)) {
+    if (
+      cardInfo &&
+      (!cardInfo.audioUrls || cardInfo.audioUrls.length === 0) &&
+      !configError
+    ) {
       handleRegenerate();
     }
-  }, [cardInfo]);
+  }, [cardInfo, configError]);
 
-  // Handle API errors
+  // Handle API errors and missing deck config
   useEffect(() => {
-    const error = decksError || configError || cardsError || cardError;
+    // Handle config error separately in the alert block
+    if (configError?.message === "Deck configuration not found") {
+      return;
+    }
+
+    const error = decksError || cardsError || cardError;
     if (error) {
       console.error("API Error:", error);
       setApiError("Failed to fetch data. Please check your API settings.");
@@ -558,21 +578,51 @@ export function DeckView() {
       await Promise.all([mutateCardInfo(), mutateCards()]);
     } catch (err) {
       console.error("Failed to regenerate card:", err);
-      setApiError("Failed to regenerate card. Please check your API settings.");
-      setIsSettingsOpen(true);
+      // Don't show API settings modal if we already know it's a config issue
+      if (configError?.message === "Deck configuration not found") {
+        setApiError(
+          "This deck is missing configuration. Please set up the deck configuration in your config file or choose another deck.",
+        );
+        setIsSettingsOpen(false);
+      } else {
+        setApiError(
+          "Failed to regenerate card. Please check your API settings.",
+        );
+        setIsSettingsOpen(true);
+      }
     } finally {
       setIsRegenerating(false);
     }
   };
   return (
     <div className="max-w-2xl mx-auto p-4 bg-white dark:bg-gray-800 shadow-md rounded-lg dark:text-gray-100">
+      {configError?.message === "Deck configuration not found" && (
+        <div className="mb-4 p-4 bg-yellow-100 border-l-4 border-yellow-500 text-yellow-700">
+          <p className="font-bold">Configuration Missing</p>
+          <p>
+            This deck is missing configuration. Please add a configuration for
+            this deck in your ~/.gakuon/config.toml file or choose another deck.
+            Check the{" "}
+            <a
+              href="https://github.com/Yukaii/gakuon?tab=readme-ov-file#configuration"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="text-yellow-800 underline hover:text-yellow-900"
+            >
+              configuration documentation
+            </a>{" "}
+            for examples.
+          </p>
+        </div>
+      )}
+
       <DeckSelector
         decks={decksData?.decks || []}
         selectedDeck={deckName}
         onSelect={handleDeckSelect}
       />
 
-      {cards && cards.length > 0 && (
+      {cards && cards.length > 0 && !configError && (
         <div className="grid gap-4 bg-gray-50 dark:bg-gray-700 p-4 rounded-lg shadow-inner">
           <h2 className="text-xl font-bold">Due Cards ({cards.length})</h2>
           <div className="card p-2 sm:p-4 border dark:border-gray-600 rounded mb-4 bg-gray-100 dark:bg-gray-800 shadow overflow-hidden">

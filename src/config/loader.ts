@@ -34,7 +34,7 @@ const ENV_VAR_MAPPINGS = {
   "global.defaultDeck": "GAKUON_DEFAULT_DECK",
   "global.cardOrder.queueOrder": "GAKUON_QUEUE_ORDER",
   "global.cardOrder.reviewOrder": "GAKUON_REVIEW_ORDER",
-  "global.cardOrder.newCardOrder": "GAKUON_NEW_CARD_ORDER"
+  "global.cardOrder.newCardOrder": "GAKUON_NEW_CARD_ORDER",
 };
 
 // Keys that should undergo environment variable interpolation
@@ -44,7 +44,8 @@ function processConfigValues(obj: any, path: string[] = []): any {
   if (typeof obj === "string") {
     const fullPath = path.join(".");
     if (ALLOWED_ENV_KEYS.has(fullPath)) {
-      const envVar = ENV_VAR_MAPPINGS[fullPath as keyof typeof ENV_VAR_MAPPINGS];
+      const envVar =
+        ENV_VAR_MAPPINGS[fullPath as keyof typeof ENV_VAR_MAPPINGS];
       const envValue = process.env[envVar];
       if (envValue !== undefined) {
         return envValue;
@@ -85,9 +86,14 @@ function processRawConfig(rawConfig: any): GakuonConfig {
     global: {
       ...withEnvVars.global,
       cardOrder: {
-        queueOrder: queueOrder as QueueOrder || withEnvVars.global.cardOrder.queueOrder,
-        reviewOrder: reviewOrder as ReviewSortOrder || withEnvVars.global.cardOrder.reviewOrder,
-        newCardOrder: newCardOrder as NewCardGatherOrder || withEnvVars.global.cardOrder.newCardOrder,
+        queueOrder:
+          (queueOrder as QueueOrder) || withEnvVars.global.cardOrder.queueOrder,
+        reviewOrder:
+          (reviewOrder as ReviewSortOrder) ||
+          withEnvVars.global.cardOrder.reviewOrder,
+        newCardOrder:
+          (newCardOrder as NewCardGatherOrder) ||
+          withEnvVars.global.cardOrder.newCardOrder,
       },
     },
   };
@@ -98,11 +104,13 @@ export function loadConfig(customPath?: string): GakuonConfig {
   const base64Config = process.env.BASE64_GAKUON_CONFIG;
   if (base64Config) {
     try {
-      const decodedConfig = Buffer.from(base64Config, 'base64').toString('utf-8');
+      const decodedConfig = Buffer.from(base64Config, "base64").toString(
+        "utf-8",
+      );
       const rawConfig = parse(decodedConfig) as any;
       return processRawConfig(rawConfig);
     } catch (error) {
-      console.warn('Failed to parse BASE64_GAKUON_CONFIG:', error);
+      console.warn("Failed to parse BASE64_GAKUON_CONFIG:", error);
       // Fall through to file-based config
     }
   }
@@ -131,7 +139,8 @@ function reverseProcessConfigValues(obj: any, path: string[] = []): any {
   if (typeof obj === "string") {
     const fullPath = path.join(".");
     if (ALLOWED_ENV_KEYS.has(fullPath)) {
-      const envVar = ENV_VAR_MAPPINGS[fullPath as keyof typeof ENV_VAR_MAPPINGS];
+      const envVar =
+        ENV_VAR_MAPPINGS[fullPath as keyof typeof ENV_VAR_MAPPINGS];
       const envValue = process.env[envVar];
       if (obj === envValue) {
         return `\${${envVar}}`;
