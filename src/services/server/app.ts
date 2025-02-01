@@ -232,7 +232,7 @@ export function createServer(deps: ServerDependencies) {
       // Send the file
       res.sendFile(tempFilePath, (err) => {
         if (err) {
-          res.status(404).json({ error: "Audio file not found" });
+          return next(err);
         }
 
         // Clean up: Delete the temporary file after sending
