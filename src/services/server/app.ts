@@ -1,4 +1,5 @@
 import express from "express";
+import { asyncHandler } from "../../utils/asyncHandler";
 import cors from "cors";
 import type { Request, Response, NextFunction, RequestHandler } from "express";
 import type {
@@ -97,183 +98,141 @@ export function createServer(deps: ServerDependencies) {
   };
 
   // API Routes
-  app.get("/api/decks", async (_req, res: Response, next) => {
-    try {
+  app.get(
+    "/api/decks",
+    asyncHandler(async (_req, res: Response) => {
       const decks = await deps.ankiService.getDeckNames();
       res.json({
         decks: decks,
       });
-    } catch (err) {
-      next(err);
-    }
-  });
+    }),
+  );
 
-  app.get("/api/decks/:name/cards", async (req, res: Response, next) => {
-    try {
+  app.get(
+    "/api/decks/:name/cards",
+    asyncHandler(async (req, res: Response) => {
       const cards = await deps.ankiService.getDueCardsInfo(req.params.name);
       res.json(cards);
-    } catch (err) {
-      next(err);
+    }),
+  );
+
+  const getCardDetails = async (req: Request, res: Response) => {
+    const cardId = Number.parseInt(req.params.id, 10);
+    const [card] = await deps.ankiService.getCardsInfo([cardId]);
+
+    if (!card) {
+      return res.status(404).json({ error: "Card not found" });
     }
-  });
 
-  const getCardDetails = async (
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ) => {
-    try {
-      const cardId = Number.parseInt(req.params.id, 10);
-      const [card] = await deps.ankiService.getCardsInfo([cardId]);
+    const { metadata, content, audioFiles } =
+      await deps.contentManager.getExistingContent(card);
 
-      if (!card) {
-        return res.status(404).json({ error: "Card not found" });
-      }
+    const response: CardResponse = {
+      cardId: card.cardId,
+      content: content || {},
+      audioUrls: await Promise.all(audioFiles),
+      queue: card.queue,
+      due: card.due,
+      interval: card.interval,
+      factor: card.factor,
+      reps: card.reps,
+      lapses: card.lapses,
+      fields: card.fields,
+      metadata,
+    };
 
-      const { metadata, content, audioFiles } =
-        await deps.contentManager.getExistingContent(card);
-
-      const response: CardResponse = {
-        cardId: card.cardId,
-        content: content || {},
-        audioUrls: await Promise.all(audioFiles),
-        queue: card.queue,
-        due: card.due,
-        interval: card.interval,
-        factor: card.factor,
-        reps: card.reps,
-        lapses: card.lapses,
-        fields: card.fields,
-        metadata,
-      };
-
-      res.json(response);
-    } catch (err) {
-      next(err);
-    }
+    res.json(response);
   };
-  app.get("/api/cards/:id", getCardDetails as unknown as RequestHandler);
+  app.get(
+    "/api/cards/:id",
+    asyncHandler(getCardDetails) as unknown as RequestHandler,
+  );
 
-  const submitCardAnswer = async (
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ) => {
-    try {
-      const cardId = Number.parseInt(req.params.id, 10);
-      const { ease } = req.body as AnswerRequest;
+  const submitCardAnswer = async (req: Request, res: Response) => {
+    const cardId = Number.parseInt(req.params.id, 10);
+    const { ease } = req.body as AnswerRequest;
 
-      if (ease < 1 || ease > 4) {
-        return res.status(400).json({ error: "Invalid ease value" });
-      }
-
-      const success = await deps.ankiService.answerCard(cardId, ease);
-      if (!success) {
-        return res.status(404).json({ error: "Card not found" });
-      }
-
-      res.json({ success: true });
-    } catch (err) {
-      next(err);
+    if (ease < 1 || ease > 4) {
+      return res.status(400).json({ error: "Invalid ease value" });
     }
+
+    const success = await deps.ankiService.answerCard(cardId, ease);
+    if (!success) {
+      return res.status(404).json({ error: "Card not found" });
+    }
+
+    res.json({ success: true });
   };
   app.post(
     "/api/cards/:id/answer",
-    submitCardAnswer as unknown as RequestHandler,
+    asyncHandler(submitCardAnswer) as unknown as RequestHandler,
   );
 
-  const regenerateCardContent = async (req, res: Response, next) => {
-    try {
-      const cardId = Number.parseInt(req.params.id, 10);
-      const [card] = await deps.ankiService.getCardsInfo([cardId]);
+  const regenerateCardContent = async (req, res: Response) => {
+    const cardId = Number.parseInt(req.params.id, 10);
+    const [card] = await deps.ankiService.getCardsInfo([cardId]);
 
-      if (!card) {
-        return res.status(404).json({ error: "Card not found" });
-      }
-
-      // Find deck config for the card
-      const config = findDeckConfig(card.deckName, deps.config.decks);
-      if (!config) {
-        return res.status(404).json({ error: "Deck configuration not found" });
-      }
-
-      // Generate new content
-      const { content, audioFiles } =
-        await deps.contentManager.getOrGenerateContent(card, config, true);
-
-      // Wait for audio generation to complete
-      await Promise.all(audioFiles);
-
-      res.json({ content });
-    } catch (err) {
-      next(err);
+    if (!card) {
+      return res.status(404).json({ error: "Card not found" });
     }
+
+    // Find deck config for the card
+    const config = findDeckConfig(card.deckName, deps.config.decks);
+    if (!config) {
+      return res.status(404).json({ error: "Deck configuration not found" });
+    }
+
+    // Generate new content
+    const { content, audioFiles } =
+      await deps.contentManager.getOrGenerateContent(card, config, true);
+
+    // Wait for audio generation to complete
+    await Promise.all(audioFiles);
+
+    res.json({ content });
   };
   app.post(
     "/api/cards/:id/regenerate",
-    regenerateCardContent as unknown as RequestHandler,
+    asyncHandler(regenerateCardContent) as unknown as RequestHandler,
   );
 
-  const serveAudioFile = async (req: Request, res: Response, next) => {
+  const serveAudioFile = async (req: Request, res: Response) => {
     let tempFilePath: string | null = null;
-
-    try {
-      const base64Audio = await deps.ankiService.retrieveMediaFile(
-        req.params.filename,
-      );
-
-      if (!base64Audio) {
-        return res.status(404).json({ error: "Audio file not found" });
+    const base64Audio = await deps.ankiService.retrieveMediaFile(
+      req.params.filename,
+    );
+    if (!base64Audio) {
+      return res.status(404).json({ error: "Audio file not found" });
+    }
+    tempFilePath = await saveBase64ToTemp(base64Audio);
+    res.sendFile(tempFilePath, (err) => {
+      if (err) {
+        return res.status(500).end();
       }
-
-      // Save base64 to temporary file
-      tempFilePath = await saveBase64ToTemp(base64Audio);
-
-      // Send the file
-      res.sendFile(tempFilePath, (err) => {
-        if (err) {
-          return next(err);
-        }
-
-        // Clean up: Delete the temporary file after sending
-        if (tempFilePath) {
-          unlink(tempFilePath).catch(console.error);
-        }
-      });
-    } catch (err) {
-      // Clean up on error
       if (tempFilePath) {
         unlink(tempFilePath).catch(console.error);
       }
-      next(err);
-    }
+    });
   };
   // Audio file serving
-  app.get("/api/audio/:filename", serveAudioFile as unknown as RequestHandler);
+  app.get(
+    "/api/audio/:filename",
+    asyncHandler(serveAudioFile) as unknown as RequestHandler,
+  );
 
-  const getDeckConfig = async (
-    req: Request,
-    res: Response,
-    next: NextFunction,
-  ) => {
-    try {
-      const deckName = req.params.name;
-      const config = findDeckConfig(deckName, deps.config.decks);
+  const getDeckConfig = async (req: Request, res: Response) => {
+    const deckName = req.params.name;
+    const config = findDeckConfig(deckName, deps.config.decks);
 
-      if (!config) {
-        return res.status(404).json({ error: "Deck configuration not found" });
-      }
-
-      res.json({
-        config,
-      });
-    } catch (err) {
-      next(err);
+    if (!config) {
+      return res.status(404).json({ error: "Deck configuration not found" });
     }
+
+    res.json({ config });
   };
   app.get(
     "/api/decks/:name/config",
-    getDeckConfig as unknown as RequestHandler,
+    asyncHandler(getDeckConfig) as unknown as RequestHandler,
   );
 
   app.use(errorHandler as unknown as RequestHandler);
