@@ -138,7 +138,7 @@ bun run start serve -d
 
 4. Frontend Development:
    Frontend engineers can work on the client without spinning up the entire backend stack. Instead, start the headless Anki service using the simplified Docker Compose file. This exposes the AnkiConnect API on port 8765, allowing you to run the PWA client in isolation.
-   
+
    To start the headless Anki service, run:
 
 ```bash
