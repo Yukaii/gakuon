@@ -37,14 +37,13 @@ jobs:
       - name: Install dependencies
         run: bun install
 
-      - name: Start headless anki services
-        run: docker-compose -f deployment/compose/docker-compose.simple.yml up -d
+      - uses: hoverkraft-tech/compose-action@v2.2.0
+        with:
+          compose-file: "deployment/compose/docker-compose.simple.yml"
+          up-flags: "-d"
 
       - name: Run integration tests
         run: bun run test:integration
-
-      - name: Stop headless anki services
-        run: docker-compose -f deployment/compose/docker-compose.simple.yml down
 
   build:
     runs-on: ubuntu-latest
