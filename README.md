@@ -17,6 +17,26 @@
 - Provides keyboard-driven interface for efficient reviews
 - Works with existing Anki decks and card types
 
+## How is gakuon different?
+
+- A standalone CLI to generate audio (TTS) out of your anki cards
+- Accompanied with standalone server mode and a built-in web client to play audio.
+- Stores additional metadata in an extra meta field without breaking your existing anki cards
+
+## Architecture
+
+```mermaid
+graph TD;
+    subgraph "CLI Commands"
+      A["gakuon learn: Generate audio and play in terminal"]
+    end
+    subgraph "Server Mode"
+      B["gakuon serve: Instantiate server"]
+      C["Built-in Web Client"]
+      B --> C
+    end
+```
+
 Perfect for:
 - Language learners who want to maintain their Anki reviews while multitasking
 - Users who prefer audio-based learning
