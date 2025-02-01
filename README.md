@@ -9,15 +9,12 @@
 学音 (Gakuon) is an AI-powered audio learning system for Anki that transforms your flashcard reviews into an immersive audio experience. It automatically generates contextual sentences, explanations, and natural speech for your cards, allowing you to maintain your Anki reviews through passive listening.
 
 ## Features
-- Generates natural example sentences using OpenAI
-- Creates explanations in both target and native languages
-- Converts text to high-quality speech using OpenAI's TTS
-- Caches generated content in Anki cards for reuse
-- Supports configurable card ordering and review patterns
-- Provides keyboard-driven interface for efficient reviews
-- Works with existing Anki decks and card types
 
-## How is gakuon different?
+- AI-powered generation of natural example sentences and multilingual explanations with high-quality TTS conversion.
+- Efficient content management with cached results, configurable card ordering, and keyboard-driven reviews.
+- Ideal for language learners, multitaskers, and anyone looking to enhance their Anki cards with engaging audio.
+
+### How is gakuon different?
 
 - A standalone CLI to generate audio (TTS) out of your anki cards
 - Accompanied with standalone server mode and a built-in web client to play audio.
@@ -36,12 +33,6 @@ graph TD;
       B --> C
     end
 ```
-
-Perfect for:
-- Language learners who want to maintain their Anki reviews while multitasking
-- Users who prefer audio-based learning
-- Anyone looking to enhance their Anki cards with AI-generated content
-- Learners who want to practice listening comprehension
 
 > [!WARNING]
 > This program would add extra fields to your card type! Understand what you're doing
