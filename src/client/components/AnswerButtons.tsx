@@ -1,13 +1,15 @@
+import { ArrowCounterClockwise, Warning, Check, Star } from "@phosphor-icons/react";
+
 export interface AnswerButtonsProps {
   onAnswer: (ease: number) => void;
 }
 
 export default function AnswerButtons({ onAnswer }: AnswerButtonsProps) {
   const answers = [
-    { ease: 1, label: "Again", icon: "↻", color: "red" },
-    { ease: 2, label: "Hard", icon: "⚠", color: "yellow" },
-    { ease: 3, label: "Good", icon: "✓", color: "green" },
-    { ease: 4, label: "Easy", icon: "⭐", color: "blue" },
+    { ease: 1, label: "Again", icon: <ArrowCounterClockwise size={24} />, color: "red" },
+    { ease: 2, label: "Hard", icon: <Warning size={24} />, color: "yellow" },
+    { ease: 3, label: "Good", icon: <Check size={24} />, color: "green" },
+    { ease: 4, label: "Easy", icon: <Star size={24} />, color: "blue" },
   ];
 
   return (
