@@ -7,6 +7,7 @@
     "gakuon": "./dist/gakuon"
   },
   "scripts": {
+    "test:integration": "jest --config jest.integration.config.js",
     "start": "bun run src/index.ts",
     "build": "bun build src/index.ts --target=node --outfile dist/gakuon",
     "prepublishOnly": "rm -rf dist && bun run build && bun run build:client",

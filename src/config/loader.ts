@@ -156,8 +156,8 @@ export function loadConfig(customPath?: string): GakuonConfig {
             `Invalid configuration from BASE64_GAKUON_CONFIG: ${error.message}. Issues: ${JSON.stringify(
               error.issues,
               null,
-              2
-            )}`
+              2,
+            )}`,
           );
         }
         throw error;
@@ -185,8 +185,8 @@ export function loadConfig(customPath?: string): GakuonConfig {
         `Invalid configuration from file ${configPath}: ${error.message}. Issues: ${JSON.stringify(
           error.issues,
           null,
-          2
-        )}`
+          2,
+        )}`,
       );
     }
     throw error;

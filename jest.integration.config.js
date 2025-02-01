@@ -4,6 +4,5 @@ export default {
   transform: {
     "^.+.tsx?$": ["ts-jest", {}],
   },
-  testMatch: ["**/*.test.[jt]s?(x)"],
-  testPathIgnorePatterns: ["<rootDir>/tests/integration/"],
+  testMatch: ["**/tests/integration/**/*.test.[jt]s?(x)"],
 };
