@@ -18,7 +18,7 @@ export default function AudioPlayer({
   setCurrentAudioIndex,
 }: AudioPlayerProps) {
   const audioRefs = useRef<HTMLAudioElement[]>([]);
-  const progressBarRef = useRef<HTMLDivElement>(null);
+  const progressBarRef = useRef<HTMLButtonElement>(null);
   const [currentTime, setCurrentTime] = useState(0);
   const [duration, setDuration] = useState(0);
 
@@ -55,7 +55,7 @@ export default function AudioPlayer({
     };
   }, [currentAudioIndex, audioUrls.length, setCurrentAudioIndex, setIsPlaying]);
 
-  const handleProgressBarClick = (event: React.MouseEvent<HTMLDivElement>) => {
+  const handleProgressBarClick = (event: React.MouseEvent<HTMLButtonElement>) => {
     const progressBar = progressBarRef.current;
     if (!progressBar || !audioRefs.current[currentAudioIndex]) return;
 
@@ -100,19 +100,18 @@ export default function AudioPlayer({
           </div>
         </div>
 
-        <div
+        <button
           ref={progressBarRef}
           className="h-2 bg-white/20 dark:bg-gray-600 rounded-full cursor-pointer relative"
           onClick={handleProgressBarClick}
-          role="button"
-          tabIndex={0}
-          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") progressBarRef.current?.click(); }}
+          style={{ background: "none", border: "none", padding: 0 }}
+          type="button"
         >
           <div
             className="absolute h-full bg-white/50 dark:bg-blue-500 rounded-full"
             style={{ width: `${(currentTime / duration) * 100}%` }}
           />
-        </div>
+        </button>
 
         <div className="flex justify-center items-center gap-4">
           <button
