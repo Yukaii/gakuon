@@ -26,7 +26,6 @@ Perfect for:
 > [!WARNING]
 > This program would add extra fields to your card type! Understand what you're doing
 
-
 > [!NOTE]
 > Project status: Alpha, with a working CLI program
 
@@ -89,8 +88,8 @@ Test deck configuration with sample cards:
 ```bash
 gakuon test              # Test default or selected deck
 gakuon test --deck NAME  # Test specific deck
-gakuon test -n 5        # Test with 5 sample cards (default: 3)
-gakuon test --debug     # Enable debug logging
+gakuon test -n 5         # Test with 5 sample cards (default: 3)
+gakuon test --debug      # Enable debug logging
 ```
 
 ## Deployment
@@ -99,14 +98,36 @@ For production deployment using Docker Compose, see the [Docker Setup Guide](dep
 
 ## Development
 
+To set up the development environment for both server and client:
+
+1. Install dependencies:
+
 ```bash
 bun install
+```
 
+2. Start the backend server in development mode:
+
+```bash
 bun run start
-# start server with development mode
+# Alternatively, start the server in debug mode:
 bun run start serve -d
+```
 
-# start pwa client development mode
+3. For full-stack development, the server will be available along with the built-in PWA client.
+
+4. Frontend Development:
+   Frontend engineers can work on the client without spinning up the entire backend stack. Instead, start the headless Anki service using the simplified Docker Compose file. This exposes the AnkiConnect API on port 8765, allowing you to run the PWA client in isolation.
+   
+   To start the headless Anki service, run:
+
+```bash
+docker compose -f deployment/compose/docker-compose.simple.yml up -d
+```
+
+   Then, start the PWA client development server:
+
+```bash
 bun run dev:client
 ```
 
@@ -146,7 +167,7 @@ For more detailed configuration including deck-specific settings, use `~/.gakuon
 ankiHost = "http://localhost:8765"
 openaiApiKey = "${OPENAI_API_KEY}"  # Will use OPENAI_API_KEY environment variable
 ttsVoice = "alloy"
-# Optional field. Using with CLI learn command
+# Optional field. Used with CLI learn command
 defaultDeck = "Core 2k/6k Optimized Japanese Vocabulary with Sound Part 01"
 
 [global.openai]
