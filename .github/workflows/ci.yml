@@ -32,6 +32,12 @@ jobs:
         image: ghcr.io/yukaii/gakuon-headless-anki:latest
         ports:
           - 8765:8765
+        options: >-
+         --health-cmd "curl http://localhost:8765"
+         --health-interval 30s
+         --health-timeout 15s
+         --health-retries 3
+
     steps:
       - uses: actions/checkout@v4
 
