@@ -41,40 +41,37 @@ jobs:
 
       - name: Install dependencies
         run: bun install
-      - name: Create .gakuon directory
-        run: mkdir -p ~/.gakuon
-      - name: Create default config file
-        uses: finnp/create-file-action@2.0.0
-        env:
-          FILE_NAME: "~/.gakuon/config.toml"
-          FILE_DATA: |
-            # Gakuon Configuration File
-            # Generated on 2025-02-01T00:00:00.000Z
-            # Do not edit while Anki is running
-            [global]
-            ankiHost = "http://localhost:8765"
-            openaiApiKey = "${OPENAI_API_KEY}"
-            ttsVoice = "alloy"
-
-            [global.openai]
-            baseUrl = "https://api.openai.com/v1"
-            chatModel = "gpt-4o"
-            initModel = "gpt-4o"
-            ttsModel = "tts-1"
-
-            [global.cardOrder]
-            queueOrder = "learning_review_new"
-            reviewOrder = "due_date_random"
-            newCardOrder = "deck"
-
-            decks = []
 
 
       - name: Setup upterm session
         uses: lhotari/action-upterm@v1
 
       - name: Run integration tests
-        run: bun run test:integration
+        run: |
+          mkdir -p ~/.gakuon
+          cat <<'EOF' > ~/.gakuon/config.toml
+          # Gakuon Configuration File
+          # Generated on 2025-02-01T00:00:00.000Z
+          # Do not edit while Anki is running
+          [global]
+          ankiHost = "http://localhost:8765"
+          openaiApiKey = "${OPENAI_API_KEY}"
+          ttsVoice = "alloy"
+
+          [global.openai]
+          baseUrl = "https://api.openai.com/v1"
+          chatModel = "gpt-4o"
+          initModel = "gpt-4o"
+          ttsModel = "tts-1"
+
+          [global.cardOrder]
+          queueOrder = "learning_review_new"
+          reviewOrder = "due_date_random"
+          newCardOrder = "deck"
+
+          decks = []
+          EOF
+          bun run test:integration
 
   build:
     runs-on: ubuntu-latest
