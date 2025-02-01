@@ -93,6 +93,10 @@ gakuon test -n 5        # Test with 5 sample cards (default: 3)
 gakuon test --debug     # Enable debug logging
 ```
 
+## Deployment
+
+For production deployment using Docker Compose, see the [Docker Setup Guide](deployment/compose/README.md).
+
 ## Development
 
 ```bash
