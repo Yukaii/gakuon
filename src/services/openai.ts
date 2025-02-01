@@ -1,11 +1,16 @@
 import OpenAI from "openai";
 import { writeFile } from "node:fs/promises";
+import WebSocket from 'ws';
+global.WebSocket = WebSocket as any;
+
 import {
   type DeckConfig,
   type Card,
   PromptError,
   type DynamicContent,
 } from "../config/types";
+import { EdgeSpeechTTS } from '@lobehub/tts';
+import { Buffer } from 'buffer';
 
 export class OpenAIService {
   public client: OpenAI;
@@ -17,6 +22,7 @@ export class OpenAIService {
     private ttsModel = "tts-1",
     private debug = false,
   ) {
+   
     this.client = new OpenAI({
       apiKey,
       baseURL: baseUrl,
@@ -86,57 +92,64 @@ ${Object.entries(deckConfig.responseFields)
     ([field, config]) =>
       `- ${field}: ${config.description}${config.required ? " (required)" : " (optional)"}`,
   )
-  .join("\n")}`;
+  .join("\n")}
+  
+  Required fields must be present in the response.`;
   }
 
   async generateContent(
     card: Card,
     deckConfig: DeckConfig,
   ): Promise<DynamicContent> {
-    try {
-      // Validate fields before processing
-      this.validateFields(card, deckConfig);
+    while (true) {
+      try {
+        // Validate fields before processing
+        this.validateFields(card, deckConfig);
 
-      // Replace field references in prompt
-      const processedPrompt = this.replaceFieldReferences(
-        deckConfig.prompt,
-        card,
-        deckConfig,
-      );
+        // Replace field references in prompt
+        const processedPrompt = this.replaceFieldReferences(
+          deckConfig.prompt,
+          card,
+          deckConfig,
+        );
 
-      const fullPrompt = `${processedPrompt}\n\n${this.generateResponseFormat(deckConfig)}`;
-      this.debugLog(fullPrompt);
+        const fullPrompt = `${processedPrompt}\n\n${this.generateResponseFormat(deckConfig)}`;
+        this.debugLog(fullPrompt);
+        this.debugLog(this.chatModel);
+        const completion = await this.client.chat.completions.create({
+          model: this.chatModel,
+          messages: [{ role: "user", content: fullPrompt }],
+          response_format: { type: "json_object" },
+        });
+        
+        const response = JSON.parse(
+          // biome-ignore lint/style/noNonNullAssertion: <explanation>
+          completion.choices[0].message.content!,
+        ) as Record<string, string>;
 
-      const completion = await this.client.chat.completions.create({
-        model: this.chatModel,
-        messages: [{ role: "user", content: fullPrompt }],
-        response_format: { type: "json_object" },
-      });
 
-      const response = JSON.parse(
-        // biome-ignore lint/style/noNonNullAssertion: <explanation>
-        completion.choices[0].message.content!,
-      ) as Record<string, string>;
+        // Validate required fields
+        const missingRequired = Object.entries(deckConfig.responseFields)
+          .filter(([field, config]) => config.required && !response[field])
+          .map(([field]) => field);
 
-      // Validate required fields
-      const missingRequired = Object.entries(deckConfig.responseFields)
-        .filter(([field, config]) => config.required && !response[field])
-        .map(([field]) => field);
+        if (missingRequired.length === 0) {
+          return response;
+        }
 
-      if (missingRequired.length > 0) {
-        throw new PromptError("AI response missing required fields", {
+        this.debugLog("AI response missing required fields", {
           missingFields: missingRequired,
         });
-      }
+        this.debugLog("Now Regenerating");
 
-      return response;
-    } catch (error) {
-      if (error instanceof PromptError) {
-        throw error;
+      } catch (error) {
+        if (error instanceof PromptError) {
+          throw error;
+        }
+        throw new PromptError("Content generation failed", {
+          configIssues: [(error as Error).message],
+        });
       }
-      throw new PromptError("Content generation failed", {
-        configIssues: [(error as Error).message],
-      });
     }
   }
 
@@ -145,6 +158,29 @@ ${Object.entries(deckConfig.responseFields)
     outputPath: string,
     voice: string,
   ): Promise<string> {
+    // If the model is llama, use our custom tts
+    if (this.chatModel.includes("llama")) {
+      try {
+        this.debugLog("Generating audio for ollama model");
+        // Use EdgeSpeechTTS for ollama model
+        const tts = new EdgeSpeechTTS({ locale: 'en-US' });
+        const payload = {
+        input: text,
+        options: {
+          voice: voice,
+        },
+      };
+
+      const response = await tts.create(payload);
+        const mp3Buffer = Buffer.from(await response.arrayBuffer());
+        writeFile(outputPath, mp3Buffer);
+        return outputPath;
+      } catch (error) {
+        throw error;
+      }
+    }
+
+    // Default logic for openai models
     const mp3 = await this.client.audio.speech.create({
       model: this.ttsModel,
       // biome-ignore lint/suspicious/noExplicitAny: <explanation>

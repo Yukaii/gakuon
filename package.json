@@ -43,6 +43,7 @@
   },
   "dependencies": {
     "@iarna/toml": "^2.2.5",
+    "@lobehub/tts": "^1.28.0",
     "@tailwindcss/vite": "^4.0.0",
     "commander": "^13.1.0",
     "cors": "^2.8.5",

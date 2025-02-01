@@ -72,6 +72,7 @@ export async function learn(options: LearnOptions = {}) {
     ankiService,
     openaiService,
     options.debug,
+    config.global.ttsVoice,
   );
   const audioPlayer = new AudioPlayer(ankiService, options.debug);
 

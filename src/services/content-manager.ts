@@ -12,6 +12,7 @@ export class ContentManager {
     private ankiService: AnkiService,
     private openaiService: OpenAIService,
     private debug = false,
+    private ttsVoice: string,
   ) {
     this.debugLog("Using tmpDir", this.tmpDir);
   }
@@ -81,7 +82,7 @@ export class ContentManager {
         const audioPromise = this.openaiService.generateAudio(
           content[field],
           tempPath,
-          "alloy",
+          this.ttsVoice,
         );
         audioPromises.push(audioPromise);
 
