@@ -8,6 +8,7 @@ import {
   ArrowLeft,
   ArrowRight,
   ArrowCounterClockwise,
+  ArrowClockwise,
   Gear,
 } from "@phosphor-icons/react";
 import useSWR from "swr";
@@ -18,6 +19,7 @@ import {
   fetchCard,
   answerCard,
   regenerateCard,
+  sync,
 } from "../api";
 
 import { getApiBase, setApiBase, getDefaultApiBase } from "../config";
@@ -328,6 +330,7 @@ interface SettingsModalProps {
   onApiBaseChange: (value: string) => void;
   onReset: () => void;
   onSave: () => void;
+  onSync: () => void;
   errorMessage?: string;
 }
 
@@ -338,6 +341,7 @@ function SettingsModal({
   onApiBaseChange,
   onReset,
   onSave,
+  onSync,
   errorMessage,
 }: SettingsModalProps) {
   if (!isOpen) return null;
@@ -366,6 +370,14 @@ function SettingsModal({
         </div>
 
         <div className="flex justify-end gap-2">
+          <button
+            onClick={onSync}
+            className="px-4 py-2 text-sm bg-green-500 text-white rounded hover:bg-green-600"
+            type="button"
+            title="Sync Anki"
+          >
+            <ArrowClockwise size={20} weight="bold" />
+          </button>
           <button
             onClick={onReset}
             className="px-4 py-2 text-sm bg-gray-200 dark:bg-gray-700 text-gray-800 dark:text-white rounded hover:bg-gray-300 dark:hover:bg-gray-600"
@@ -594,6 +606,16 @@ export function DeckView() {
       setIsRegenerating(false);
     }
   };
+
+  const handleSync = async () => {
+    try {
+      await sync();
+      console.log("Sync successful");
+    } catch (err) {
+      console.error("Sync failed:", err);
+    }
+  };
+
   return (
     <div className="max-w-2xl mx-auto p-4 bg-white dark:bg-gray-800 shadow-md rounded-lg dark:text-gray-100">
       {configError?.message === "Deck configuration not found" && (
@@ -671,7 +693,6 @@ export function DeckView() {
         </div>
       )}
 
-      {/* Settings Button */}
       <button
         onClick={() => setIsSettingsOpen(true)}
         className="fixed bottom-4 right-4 bg-gray-500 text-white p-2 rounded-full hover:bg-gray-600 transition"
@@ -687,6 +708,7 @@ export function DeckView() {
         apiBase={newApiBase}
         onApiBaseChange={(value) => setNewApiBase(value)}
         onReset={() => setApiBase(null)}
+        onSync={handleSync}
         errorMessage={apiError}
         onSave={() => {
           if (newApiBase !== getApiBase()) {

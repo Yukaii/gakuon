@@ -240,6 +240,14 @@ export function createServer(deps: ServerDependencies) {
     "/api/decks/:name/config",
     asyncHandler(getDeckConfig) as unknown as RequestHandler,
   );
+  // Added sync route endpoint for manually triggering Anki sync
+  app.post(
+    "/api/sync",
+    asyncHandler(async (req, res: Response) => {
+      await deps.ankiService.sync();
+      res.json({ success: true });
+    }) as unknown as RequestHandler,
+  );
 
   app.use(errorHandler as unknown as RequestHandler);
 

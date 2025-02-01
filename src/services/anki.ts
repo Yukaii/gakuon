@@ -364,4 +364,8 @@ export class AnkiService {
   async getDeckNames(): Promise<string[]> {
     return this.request<string[]>("deckNames");
   }
+
+  async sync(): Promise<void> {
+    await this.request("sync", {});
+  }
 }
