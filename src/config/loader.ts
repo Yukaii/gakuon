@@ -180,7 +180,7 @@ function reverseProcessConfigValues(obj: unknown, path: string[] = []): unknown 
   }
 
   if (obj && typeof obj === "object") {
-    const processed: any = {};
+    const processed: Record<string, unknown> = {};
     for (const [key, value] of Object.entries(obj)) {
       processed[key] = reverseProcessConfigValues(value, [...path, key]);
     }

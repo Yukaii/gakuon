@@ -106,7 +106,7 @@ export default function AudioPlayer({
           onClick={handleProgressBarClick}
           role="button"
           tabIndex={0}
-          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") handleProgressBarClick(e as any); }}
+          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") progressBarRef.current?.click(); }}
         >
           <div
             className="absolute h-full bg-white/50 dark:bg-blue-500 rounded-full"
