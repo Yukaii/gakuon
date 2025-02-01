@@ -2,13 +2,16 @@ version: '3.8'
 
 services:
   anki:
-    image: ghcr.io/yukaii/gakuon-headless-anki:main
+    image: ghcr.io/yukaii/gakuon-headless-anki:latest
     volumes:
     # bring your own data
-    #   - ./data:/data
+      - ./data:/data
       - ./export:/export
     ports:
       - "8765:8765"
+    # environment:
+    #   - DISPLAY=host.docker.internal:0
+    #   - QT_QPA_PLATFORM=xcb⏎
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8765"]
       interval: 30s
