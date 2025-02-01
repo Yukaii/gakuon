@@ -59,8 +59,16 @@ graph TD;
 
 ## Installation
 
+
+
+### Install gakuon
 ```bash
 npm install -g gakuon
+```
+
+### Install ffmpeg (OSX/Linux) 
+```
+brew install ffmpeg
 ```
 
 ## Usage
