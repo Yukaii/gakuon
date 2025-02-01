@@ -48,12 +48,6 @@ jobs:
       - name: Install dependencies
         run: bun install
 
-      - name: Test
-        run: curl localhost:8765
-
-      - name: Setup upterm session
-        uses: lhotari/action-upterm@v1
-
       - name: Run integration tests
         run: |
           mkdir -p ~/.gakuon
