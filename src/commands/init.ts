@@ -19,7 +19,7 @@ async function generateDeckConfig(
   anki: AnkiService,
   deckName: string,
   sampleSize = 3,
-): Promise<any> {
+): Promise<string> {
   // Get sample cards from deck
   const cardIds = await anki.findCards(deckName);
   const sampleCards = await anki.getCardsInfo(cardIds.slice(0, sampleSize));

@@ -127,7 +127,8 @@ export function createServer(deps: ServerDependencies) {
     const [card] = await deps.ankiService.getCardsInfo([cardId]);
 
     if (!card) {
-      return res.status(404).json({ error: "Card not found" });
+      res.status(404).json({ error: "Card not found" });
+      return;
     }
 
     const { metadata, content, audioFiles } =
@@ -159,12 +160,14 @@ export function createServer(deps: ServerDependencies) {
     const { ease } = req.body as AnswerRequest;
 
     if (ease < 1 || ease > 4) {
-      return res.status(400).json({ error: "Invalid ease value" });
+      res.status(400).json({ error: "Invalid ease value" });
+      return;
     }
 
     const success = await deps.ankiService.answerCard(cardId, ease);
     if (!success) {
-      return res.status(404).json({ error: "Card not found" });
+      res.status(404).json({ error: "Card not found" });
+      return;
     }
 
     res.json({ success: true });
@@ -179,13 +182,15 @@ export function createServer(deps: ServerDependencies) {
     const [card] = await deps.ankiService.getCardsInfo([cardId]);
 
     if (!card) {
-      return res.status(404).json({ error: "Card not found" });
+      res.status(404).json({ error: "Card not found" });
+      return;
     }
 
     // Find deck config for the card
     const config = findDeckConfig(card.deckName, deps.config.decks);
     if (!config) {
-      return res.status(404).json({ error: "Deck configuration not found" });
+      res.status(404).json({ error: "Deck configuration not found" });
+      return;
     }
 
     // Generate new content
@@ -208,12 +213,14 @@ export function createServer(deps: ServerDependencies) {
       req.params.filename,
     );
     if (!base64Audio) {
-      return res.status(404).json({ error: "Audio file not found" });
+      res.status(404).json({ error: "Audio file not found" });
+      return;
     }
     tempFilePath = await saveBase64ToTemp(base64Audio);
     res.sendFile(tempFilePath, (err) => {
       if (err) {
-        return res.status(500).end();
+        res.status(500).end();
+        return;
       }
       if (tempFilePath) {
         unlink(tempFilePath).catch(console.error);
@@ -231,7 +238,8 @@ export function createServer(deps: ServerDependencies) {
     const config = findDeckConfig(deckName, deps.config.decks);
 
     if (!config) {
-      return res.status(404).json({ error: "Deck configuration not found" });
+      res.status(404).json({ error: "Deck configuration not found" });
+      return;
     }
 
     res.json({ config });

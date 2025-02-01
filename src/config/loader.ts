@@ -1,4 +1,4 @@
-import { parse, stringify } from "@iarna/toml";
+import { parse, stringify, type JsonMap } from "@iarna/toml";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { homedir } from "node:os";
@@ -50,7 +50,7 @@ const ENV_VAR_MAPPINGS = {
 // Keys that should undergo environment variable interpolation
 const ALLOWED_ENV_KEYS = new Set(Object.keys(ENV_VAR_MAPPINGS));
 
-function processConfigValues(obj: any, path: string[] = []): any {
+function processConfigValues(obj: unknown, path: string[] = []): unknown {
   if (typeof obj === "string") {
     const fullPath = path.join(".");
     if (ALLOWED_ENV_KEYS.has(fullPath)) {
@@ -72,7 +72,7 @@ function processConfigValues(obj: any, path: string[] = []): any {
   }
 
   if (obj && typeof obj === "object") {
-    const processed: any = {};
+    const processed: Record<string, unknown> = {};
     for (const [key, value] of Object.entries(obj)) {
       processed[key] = processConfigValues(value, [...path, key]);
     }
@@ -82,9 +82,17 @@ function processConfigValues(obj: any, path: string[] = []): any {
   return obj;
 }
 
-function processRawConfig(rawConfig: any): GakuonConfig {
+type ProcessedConfig = Partial<GakuonConfig> & {
+  global?: Partial<GakuonConfig["global"]> & {
+    openai?: Partial<GakuonConfig["global"]["openai"]>;
+    cardOrder?: Partial<GakuonConfig["global"]["cardOrder"]>;
+  };
+};
+
+function processRawConfig(rawConfig: unknown): GakuonConfig {
   // Process environment variables first
   const withEnvVars = processConfigValues(rawConfig);
+  const processed = withEnvVars as ProcessedConfig;
 
   // Handle enum conversions for card order settings from env vars
   const queueOrder = process.env.GAKUON_QUEUE_ORDER;
@@ -97,26 +105,30 @@ function processRawConfig(rawConfig: any): GakuonConfig {
     chatModel: DEFAULT_CONFIG.global.openai.chatModel,
     initModel: DEFAULT_CONFIG.global.openai.initModel,
     ttsModel: DEFAULT_CONFIG.global.openai.ttsModel,
-    ...(withEnvVars.global?.openai || {}),
+    ...(processed.global?.openai || {}),
   };
 
   return {
-    ...withEnvVars,
+    ...processed,
+    decks: processed.decks || DEFAULT_CONFIG.decks,
     global: {
-      ...withEnvVars.global,
+      ankiHost: processed.global?.ankiHost || DEFAULT_CONFIG.global.ankiHost,
+      openaiApiKey: processed.global?.openaiApiKey || DEFAULT_CONFIG.global.openaiApiKey,
+      ttsVoice: processed.global?.ttsVoice || DEFAULT_CONFIG.global.ttsVoice,
+      defaultDeck: processed.global?.defaultDeck,
       openai: openaiConfig,
       cardOrder: {
         queueOrder:
           (queueOrder as QueueOrder) ||
-          withEnvVars.global.cardOrder?.queueOrder ||
+          (processed.global?.cardOrder?.queueOrder) ||
           DEFAULT_CONFIG.global.cardOrder.queueOrder,
         reviewOrder:
           (reviewOrder as ReviewSortOrder) ||
-          withEnvVars.global.cardOrder?.reviewOrder ||
+          (processed.global?.cardOrder?.reviewOrder) ||
           DEFAULT_CONFIG.global.cardOrder.reviewOrder,
         newCardOrder:
           (newCardOrder as NewCardGatherOrder) ||
-          withEnvVars.global.cardOrder?.newCardOrder ||
+          (processed.global?.cardOrder?.newCardOrder) ||
           DEFAULT_CONFIG.global.cardOrder.newCardOrder,
       },
     },
@@ -131,7 +143,7 @@ export function loadConfig(customPath?: string): GakuonConfig {
       const decodedConfig = Buffer.from(base64Config, "base64").toString(
         "utf-8",
       );
-      const rawConfig = parse(decodedConfig) as any;
+      const rawConfig = parse(decodedConfig);
       return processRawConfig(rawConfig);
     } catch (error) {
       console.warn("Failed to parse BASE64_GAKUON_CONFIG:", error);
@@ -147,7 +159,7 @@ export function loadConfig(customPath?: string): GakuonConfig {
   }
 
   const configFile = readFileSync(configPath, "utf-8");
-  const rawConfig = parse(configFile) as any;
+  const rawConfig = parse(configFile);
   return processRawConfig(rawConfig);
 }
 
@@ -159,7 +171,7 @@ export function findDeckConfig(
   return configs.find((config) => new RegExp(config.pattern).test(deckName));
 }
 
-function reverseProcessConfigValues(obj: any, path: string[] = []): any {
+function reverseProcessConfigValues(obj: unknown, path: string[] = []): unknown {
   if (typeof obj === "string") {
     const fullPath = path.join(".");
     if (ALLOWED_ENV_KEYS.has(fullPath)) {
@@ -180,7 +192,7 @@ function reverseProcessConfigValues(obj: any, path: string[] = []): any {
   }
 
   if (obj && typeof obj === "object") {
-    const processed: any = {};
+    const processed: Record<string, unknown> = {};
     for (const [key, value] of Object.entries(obj)) {
       processed[key] = reverseProcessConfigValues(value, [...path, key]);
     }
@@ -196,7 +208,7 @@ export async function saveConfig(config: GakuonConfig): Promise<void> {
 
   try {
     const processedConfig = reverseProcessConfigValues(config);
-    const tomlContent = stringify(processedConfig);
+    const tomlContent = stringify(processedConfig as JsonMap);
 
     const configWithHeader = `# Gakuon Configuration File
 # Generated on ${new Date().toISOString()}

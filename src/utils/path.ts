@@ -1,4 +1,4 @@
-import { homedir } from "os";
+import { homedir } from "node:os";
 
 export function expandTildePath(path: string): string {
   if (path.startsWith("~/") || path === "~") {
