@@ -72,10 +72,16 @@ export function createServer(deps: ServerDependencies) {
     }
   }
 
-  // Debug logging
+  // Debug logging with response time and query parameters
   if (deps.debug) {
-    app.use((req, _res, next) => {
-      console.log(`[${req.method}] ${req.path}`);
+    app.use((req, res, next) => {
+      const start = Date.now();
+      res.on("finish", () => {
+        const duration = Date.now() - start;
+        console.log(
+          `[DEBUG] ${req.method} ${req.path} - Query: ${JSON.stringify(req.query)} - Status: ${res.statusCode} - ${duration}ms`,
+        );
+      });
       next();
     });
   }
