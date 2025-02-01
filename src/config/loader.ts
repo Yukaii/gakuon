@@ -9,6 +9,7 @@ import {
   QueueOrder,
   ReviewSortOrder,
   NewCardGatherOrder,
+  GakuonConfigSchema,
 } from "./types";
 import { interpolateEnvVars } from "../utils/path";
 
@@ -108,31 +109,33 @@ function processRawConfig(rawConfig: unknown): GakuonConfig {
     ...(processed.global?.openai || {}),
   };
 
-  return {
+  const configObj = {
     ...processed,
     decks: processed.decks || DEFAULT_CONFIG.decks,
     global: {
       ankiHost: processed.global?.ankiHost || DEFAULT_CONFIG.global.ankiHost,
-      openaiApiKey: processed.global?.openaiApiKey || DEFAULT_CONFIG.global.openaiApiKey,
+      openaiApiKey:
+        processed.global?.openaiApiKey || DEFAULT_CONFIG.global.openaiApiKey,
       ttsVoice: processed.global?.ttsVoice || DEFAULT_CONFIG.global.ttsVoice,
       defaultDeck: processed.global?.defaultDeck,
       openai: openaiConfig,
       cardOrder: {
         queueOrder:
           (queueOrder as QueueOrder) ||
-          (processed.global?.cardOrder?.queueOrder) ||
+          processed.global?.cardOrder?.queueOrder ||
           DEFAULT_CONFIG.global.cardOrder.queueOrder,
         reviewOrder:
           (reviewOrder as ReviewSortOrder) ||
-          (processed.global?.cardOrder?.reviewOrder) ||
+          processed.global?.cardOrder?.reviewOrder ||
           DEFAULT_CONFIG.global.cardOrder.reviewOrder,
         newCardOrder:
           (newCardOrder as NewCardGatherOrder) ||
-          (processed.global?.cardOrder?.newCardOrder) ||
+          processed.global?.cardOrder?.newCardOrder ||
           DEFAULT_CONFIG.global.cardOrder.newCardOrder,
       },
     },
   };
+  return GakuonConfigSchema.parse(configObj);
 }
 
 export function loadConfig(customPath?: string): GakuonConfig {
@@ -171,7 +174,10 @@ export function findDeckConfig(
   return configs.find((config) => new RegExp(config.pattern).test(deckName));
 }
 
-function reverseProcessConfigValues(obj: unknown, path: string[] = []): unknown {
+function reverseProcessConfigValues(
+  obj: unknown,
+  path: string[] = [],
+): unknown {
   if (typeof obj === "string") {
     const fullPath = path.join(".");
     if (ALLOWED_ENV_KEYS.has(fullPath)) {
