@@ -1,24 +1,39 @@
-# gakuon (学音)
+<div align="center">
+
+# 学音 (Gakuon)
+
+<h3>Transform Your Anki Reviews into an Immersive Audio Experience</h3>
 
 [![NPM Version](https://img.shields.io/npm/v/gakuon)](https://www.npmjs.com/package/gakuon)
+[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
 
-[Project board →](https://github.com/users/Yukaii/projects/10/views/1)
-
+[View Project Board →](https://github.com/users/Yukaii/projects/10/views/1) •
 [Good First Issues →](https://github.com/users/Yukaii/projects/10/views/8)
 
-学音 (Gakuon) is an AI-powered audio learning system for Anki that transforms your flashcard reviews into an immersive audio experience. It automatically generates contextual sentences, explanations, and natural speech for your cards, allowing you to maintain your Anki reviews through passive listening.
+</div>
 
-## Features
+---
 
-- AI-powered generation of natural example sentences and multilingual explanations with high-quality TTS conversion.
-- Efficient content management with cached results, configurable card ordering, and keyboard-driven reviews.
-- Ideal for language learners, multitaskers, and anyone looking to enhance their Anki cards with engaging audio.
+## 🎯 Overview
 
-### How is gakuon different?
+Gakuon (学音) is an innovative AI-powered audio learning system that revolutionizes how you interact with your Anki flashcards. By automatically generating contextual sentences, detailed explanations, and natural speech, Gakuon enables passive learning through immersive audio experiences.
 
-- A standalone CLI to generate audio (TTS) out of your anki cards
-- Accompanied with standalone server mode and a built-in web client to play audio.
-- Stores additional metadata in an extra meta field without breaking your existing anki cards
+### ✨ Key Features
+
+- **AI-Powered Content Generation**
+  - Natural example sentences
+  - Multilingual explanations
+  - High-quality Text-to-Speech conversion
+
+- **Smart Content Management**
+  - Efficient caching system
+  - Configurable card ordering
+  - Keyboard-driven reviews
+
+- **Seamless Integration**
+  - Standalone CLI for audio generation
+  - Built-in web client interface
+  - Non-destructive metadata storage
 
 ## Architecture
 
