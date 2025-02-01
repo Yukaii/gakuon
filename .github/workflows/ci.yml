@@ -25,6 +25,27 @@ jobs:
       - name: Run tests
         run: bun run test
 
+  integration:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: oven-sh/setup-bun@v1
+        with:
+          bun-version: latest
+
+      - name: Install dependencies
+        run: bun install
+
+      - name: Start headless anki services
+        run: docker-compose -f deployment/compose/docker-compose.simple.yml up -d
+
+      - name: Run integration tests
+        run: bun run test:integration
+
+      - name: Stop headless anki services
+        run: docker-compose -f deployment/compose/docker-compose.simple.yml down
+
   build:
     runs-on: ubuntu-latest
     steps:
