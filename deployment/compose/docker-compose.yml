@@ -4,14 +4,17 @@ services:
   anki:
     image: ghcr.io/yukaii/gakuon-headless-anki:latest
     volumes:
-    # bring your own data
-      - ./data:/data
-      - ./export:/export
+      - anki_data:/data
+      - anki_export:/export
+    #   Uncomment for first-time GUI setup
+    #   - /tmp/container-xauth:/home/anki/.Xauthority:rw
+    # environment:
+    # - DISPLAY=${DISPLAY}
+    # - QT_QPA_PLATFORM=xcb
+    # - XAUTHORITY=/home/anki/.Xauthority
+    # network_mode: host
     ports:
       - "8765:8765"
-    # environment:
-    #   - DISPLAY=host.docker.internal:0
-    #   - QT_QPA_PLATFORM=xcb⏎
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8765"]
       interval: 30s
@@ -34,3 +37,5 @@ services:
 
 volumes:
   gakuon_config:
+  anki_data:
+  anki_export:
