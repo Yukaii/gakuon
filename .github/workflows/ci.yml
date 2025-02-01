@@ -27,6 +27,11 @@ jobs:
 
   integration:
     runs-on: ubuntu-latest
+    services:
+      anki:
+        image: ghcr.io/yukaii/gakuon-headless-anki:latest
+        ports:
+          - 8765:8765
     steps:
       - uses: actions/checkout@v4
 
@@ -47,7 +52,7 @@ jobs:
             # Generated on 2025-02-01T00:00:00.000Z
             # Do not edit while Anki is running
             [global]
-            ankiHost = "http://anki:8765"
+            ankiHost = "http://localhost:8765"
             openaiApiKey = "${OPENAI_API_KEY}"
             ttsVoice = "alloy"
 
@@ -64,10 +69,6 @@ jobs:
 
             decks = []
 
-      - uses: hoverkraft-tech/compose-action@v2.2.0
-        with:
-          compose-file: "deployment/compose/docker-compose.simple.yml"
-          up-flags: "-d"
 
       - name: Setup upterm session
         uses: lhotari/action-upterm@v1
