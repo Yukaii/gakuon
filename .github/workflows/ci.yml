@@ -36,10 +36,12 @@ jobs:
 
       - name: Install dependencies
         run: bun install
+      - name: Create .gakuon directory
+        run: mkdir -p ~/.gakuon
       - name: Create default config file
         uses: finnp/create-file-action@2.0.0
         env:
-          FILE_NAME: "/home/runner/.gakuon/config.toml"
+          FILE_NAME: "~/.gakuon/config.toml"
           FILE_DATA: |
             # Gakuon Configuration File
             # Generated on 2025-02-01T00:00:00.000Z
