@@ -1,17 +1,18 @@
-import { parse, stringify, type JsonMap } from "@iarna/toml";
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
-import { homedir } from "node:os";
 import { Buffer } from "node:buffer";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { homedir } from "node:os";
+import { join } from "node:path";
+import { type JsonMap, parse, stringify } from "@iarna/toml";
+import { ZodError } from "zod";
+import { interpolateEnvVars } from "../utils/path";
 import {
-  type GakuonConfig,
   type DeckConfig,
+  type GakuonConfig,
+  GakuonConfigSchema,
+  NewCardGatherOrder,
   QueueOrder,
   ReviewSortOrder,
-  NewCardGatherOrder,
-  GakuonConfigSchema,
 } from "./types";
-import { interpolateEnvVars } from "../utils/path";
 
 export const DEFAULT_CONFIG: GakuonConfig = {
   global: {
@@ -147,7 +148,20 @@ export function loadConfig(customPath?: string): GakuonConfig {
         "utf-8",
       );
       const rawConfig = parse(decodedConfig);
-      return processRawConfig(rawConfig);
+      try {
+        return processRawConfig(rawConfig);
+      } catch (error) {
+        if (error instanceof ZodError) {
+          throw new Error(
+            `Invalid configuration from BASE64_GAKUON_CONFIG: ${error.message}. Issues: ${JSON.stringify(
+              error.issues,
+              null,
+              2
+            )}`
+          );
+        }
+        throw error;
+      }
     } catch (error) {
       console.warn("Failed to parse BASE64_GAKUON_CONFIG:", error);
       // Fall through to file-based config
@@ -163,7 +177,20 @@ export function loadConfig(customPath?: string): GakuonConfig {
 
   const configFile = readFileSync(configPath, "utf-8");
   const rawConfig = parse(configFile);
-  return processRawConfig(rawConfig);
+  try {
+    return processRawConfig(rawConfig);
+  } catch (error) {
+    if (error instanceof ZodError) {
+      throw new Error(
+        `Invalid configuration from file ${configPath}: ${error.message}. Issues: ${JSON.stringify(
+          error.issues,
+          null,
+          2
+        )}`
+      );
+    }
+    throw error;
+  }
 }
 
 // Rest of deck-related functions remain unchanged
