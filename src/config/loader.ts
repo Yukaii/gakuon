@@ -1,16 +1,18 @@
-import { parse, stringify, type JsonMap } from "@iarna/toml";
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
-import { join } from "node:path";
-import { homedir } from "node:os";
 import { Buffer } from "node:buffer";
+import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { homedir } from "node:os";
+import { join } from "node:path";
+import { type JsonMap, parse, stringify } from "@iarna/toml";
+import { ZodError } from "zod";
+import { interpolateEnvVars } from "../utils/path";
 import {
-  type GakuonConfig,
   type DeckConfig,
+  type GakuonConfig,
+  GakuonConfigSchema,
+  NewCardGatherOrder,
   QueueOrder,
   ReviewSortOrder,
-  NewCardGatherOrder,
 } from "./types";
-import { interpolateEnvVars } from "../utils/path";
 
 export const DEFAULT_CONFIG: GakuonConfig = {
   global: {
@@ -108,31 +110,33 @@ function processRawConfig(rawConfig: unknown): GakuonConfig {
     ...(processed.global?.openai || {}),
   };
 
-  return {
+  const configObj = {
     ...processed,
     decks: processed.decks || DEFAULT_CONFIG.decks,
     global: {
       ankiHost: processed.global?.ankiHost || DEFAULT_CONFIG.global.ankiHost,
-      openaiApiKey: processed.global?.openaiApiKey || DEFAULT_CONFIG.global.openaiApiKey,
+      openaiApiKey:
+        processed.global?.openaiApiKey || DEFAULT_CONFIG.global.openaiApiKey,
       ttsVoice: processed.global?.ttsVoice || DEFAULT_CONFIG.global.ttsVoice,
       defaultDeck: processed.global?.defaultDeck,
       openai: openaiConfig,
       cardOrder: {
         queueOrder:
           (queueOrder as QueueOrder) ||
-          (processed.global?.cardOrder?.queueOrder) ||
+          processed.global?.cardOrder?.queueOrder ||
           DEFAULT_CONFIG.global.cardOrder.queueOrder,
         reviewOrder:
           (reviewOrder as ReviewSortOrder) ||
-          (processed.global?.cardOrder?.reviewOrder) ||
+          processed.global?.cardOrder?.reviewOrder ||
           DEFAULT_CONFIG.global.cardOrder.reviewOrder,
         newCardOrder:
           (newCardOrder as NewCardGatherOrder) ||
-          (processed.global?.cardOrder?.newCardOrder) ||
+          processed.global?.cardOrder?.newCardOrder ||
           DEFAULT_CONFIG.global.cardOrder.newCardOrder,
       },
     },
   };
+  return GakuonConfigSchema.parse(configObj);
 }
 
 export function loadConfig(customPath?: string): GakuonConfig {
@@ -144,7 +148,20 @@ export function loadConfig(customPath?: string): GakuonConfig {
         "utf-8",
       );
       const rawConfig = parse(decodedConfig);
-      return processRawConfig(rawConfig);
+      try {
+        return processRawConfig(rawConfig);
+      } catch (error) {
+        if (error instanceof ZodError) {
+          throw new Error(
+            `Invalid configuration from BASE64_GAKUON_CONFIG: ${error.message}. Issues: ${JSON.stringify(
+              error.issues,
+              null,
+              2
+            )}`
+          );
+        }
+        throw error;
+      }
     } catch (error) {
       console.warn("Failed to parse BASE64_GAKUON_CONFIG:", error);
       // Fall through to file-based config
@@ -160,7 +177,20 @@ export function loadConfig(customPath?: string): GakuonConfig {
 
   const configFile = readFileSync(configPath, "utf-8");
   const rawConfig = parse(configFile);
-  return processRawConfig(rawConfig);
+  try {
+    return processRawConfig(rawConfig);
+  } catch (error) {
+    if (error instanceof ZodError) {
+      throw new Error(
+        `Invalid configuration from file ${configPath}: ${error.message}. Issues: ${JSON.stringify(
+          error.issues,
+          null,
+          2
+        )}`
+      );
+    }
+    throw error;
+  }
 }
 
 // Rest of deck-related functions remain unchanged
@@ -171,7 +201,10 @@ export function findDeckConfig(
   return configs.find((config) => new RegExp(config.pattern).test(deckName));
 }
 
-function reverseProcessConfigValues(obj: unknown, path: string[] = []): unknown {
+function reverseProcessConfigValues(
+  obj: unknown,
+  path: string[] = [],
+): unknown {
   if (typeof obj === "string") {
     const fullPath = path.join(".");
     if (ALLOWED_ENV_KEYS.has(fullPath)) {

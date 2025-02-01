@@ -1,16 +1,12 @@
+import { z } from "zod";
+
 export interface ResponseField {
   description: string;
   required: boolean;
   audio?: boolean; // Whether this field should be converted to audio
 }
 
-export interface DeckConfig {
-  name: string;
-  pattern: string;
-  fields: Record<string, string>; // Input fields mapping
-  prompt: string;
-  responseFields: Record<string, ResponseField>; // Output fields configuration
-}
+export type DeckConfig = z.infer<typeof DeckConfigSchema>;
 
 // Remove CardContent interface as it will be dynamic
 export type DynamicContent = Record<string, string>;
@@ -29,28 +25,9 @@ export class PromptError extends Error {
   }
 }
 
-export interface OpenAIConfig {
-  baseUrl: string;
-  chatModel: string;
-  initModel: string;
-  ttsModel: string;
-}
+export type OpenAIConfig = z.infer<typeof OpenAIConfigSchema>;
 
-export interface GakuonConfig {
-  global: {
-    ankiHost: string;
-    openaiApiKey: string;
-    ttsVoice: string;
-    defaultDeck?: string;
-    openai: OpenAIConfig;
-    cardOrder: {
-      queueOrder: QueueOrder;
-      reviewOrder: ReviewSortOrder;
-      newCardOrder: NewCardGatherOrder;
-    };
-  };
-  decks: DeckConfig[];
-}
+export type GakuonConfig = z.infer<typeof GakuonConfigSchema>;
 
 export interface Card {
   cardId: number;
@@ -104,3 +81,44 @@ export enum QueueOrder {
   NEW_LEARNING_REVIEW = "new_learning_review",
   MIXED = "mixed",
 }
+
+export const OpenAIConfigSchema = z.object({
+  baseUrl: z.string(),
+  chatModel: z.string(),
+  initModel: z.string(),
+  ttsModel: z.string(),
+});
+
+export const CardOrderSchema = z.object({
+  queueOrder: z.nativeEnum(QueueOrder),
+  reviewOrder: z.nativeEnum(ReviewSortOrder),
+  newCardOrder: z.nativeEnum(NewCardGatherOrder),
+});
+
+export const GlobalConfigSchema = z.object({
+  ankiHost: z.string(),
+  openaiApiKey: z.string(),
+  ttsVoice: z.string(),
+  defaultDeck: z.string().optional(),
+  openai: OpenAIConfigSchema,
+  cardOrder: CardOrderSchema,
+});
+
+export const DeckConfigSchema = z.object({
+  name: z.string(),
+  pattern: z.string(),
+  fields: z.record(z.string()),
+  prompt: z.string(),
+  responseFields: z.record(
+    z.object({
+      description: z.string(),
+      required: z.boolean(),
+      audio: z.boolean().optional(),
+    }),
+  ),
+});
+
+export const GakuonConfigSchema = z.object({
+  global: GlobalConfigSchema,
+  decks: z.array(DeckConfigSchema),
+});

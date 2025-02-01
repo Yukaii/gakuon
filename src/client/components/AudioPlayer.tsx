@@ -49,13 +49,17 @@ export default function AudioPlayer({
       for (const audio of audioRefs.current) {
         if (audio) {
           audio.removeEventListener("ended", handleAudioEnd);
-          audio.removeEventListener("timeupdate", () => handleTimeUpdate(audio));
+          audio.removeEventListener("timeupdate", () =>
+            handleTimeUpdate(audio),
+          );
         }
       }
     };
   }, [currentAudioIndex, audioUrls.length, setCurrentAudioIndex, setIsPlaying]);
 
-  const handleProgressBarClick = (event: React.MouseEvent<HTMLButtonElement>) => {
+  const handleProgressBarClick = (
+    event: React.MouseEvent<HTMLButtonElement>,
+  ) => {
     const progressBar = progressBarRef.current;
     if (!progressBar || !audioRefs.current[currentAudioIndex]) return;
 
@@ -181,7 +185,7 @@ export default function AudioPlayer({
           <source
             src={`${getApiBase()}/audio/${url.replace("[sound:", "").replace("]", "")}`}
           />
-          <track default kind="captions" label="Captions" srcLang="en" src=""/>
+          <track default kind="captions" label="Captions" srcLang="en" src="" />
         </audio>
       ))}
     </div>
