@@ -57,5 +57,6 @@ export async function serve(options: ServeOptions = {}) {
   // Start listening
   server = app.listen(port, () => {
     console.log(`Gakuon server running at http://localhost:${port}`);
+    console.log(`Using anki connect server at ${config.global.ankiHost}`)
   });
 }

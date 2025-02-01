@@ -47,7 +47,7 @@ jobs:
             # Generated on 2025-02-01T00:00:00.000Z
             # Do not edit while Anki is running
             [global]
-            ankiHost = "http://localhost:8765"
+            ankiHost = "http://anki:8765"
             openaiApiKey = "${OPENAI_API_KEY}"
             ttsVoice = "alloy"
 
