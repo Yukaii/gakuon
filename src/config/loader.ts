@@ -1,4 +1,4 @@
-import { parse, stringify } from "@iarna/toml";
+import { parse, stringify, type JsonMap } from "@iarna/toml";
 import { existsSync, readFileSync, writeFileSync } from "node:fs";
 import { join } from "node:path";
 import { homedir } from "node:os";
@@ -82,9 +82,17 @@ function processConfigValues(obj: unknown, path: string[] = []): unknown {
   return obj;
 }
 
+type ProcessedConfig = Partial<GakuonConfig> & {
+  global?: Partial<GakuonConfig["global"]> & {
+    openai?: Partial<GakuonConfig["global"]["openai"]>;
+    cardOrder?: Partial<GakuonConfig["global"]["cardOrder"]>;
+  };
+};
+
 function processRawConfig(rawConfig: unknown): GakuonConfig {
   // Process environment variables first
   const withEnvVars = processConfigValues(rawConfig);
+  const processed = withEnvVars as ProcessedConfig;
 
   // Handle enum conversions for card order settings from env vars
   const queueOrder = process.env.GAKUON_QUEUE_ORDER;
@@ -97,26 +105,30 @@ function processRawConfig(rawConfig: unknown): GakuonConfig {
     chatModel: DEFAULT_CONFIG.global.openai.chatModel,
     initModel: DEFAULT_CONFIG.global.openai.initModel,
     ttsModel: DEFAULT_CONFIG.global.openai.ttsModel,
-    ...((withEnvVars as any).global?.openai || {}),
+    ...(processed.global?.openai || {}),
   };
 
   return {
-    ...((withEnvVars as any)),
+    ...processed,
+    decks: processed.decks || DEFAULT_CONFIG.decks,
     global: {
-      ...((withEnvVars as any).global),
+      ankiHost: processed.global?.ankiHost || DEFAULT_CONFIG.global.ankiHost,
+      openaiApiKey: processed.global?.openaiApiKey || DEFAULT_CONFIG.global.openaiApiKey,
+      ttsVoice: processed.global?.ttsVoice || DEFAULT_CONFIG.global.ttsVoice,
+      defaultDeck: processed.global?.defaultDeck,
       openai: openaiConfig,
       cardOrder: {
         queueOrder:
           (queueOrder as QueueOrder) ||
-          ((withEnvVars as any).global?.cardOrder?.queueOrder) ||
+          (processed.global?.cardOrder?.queueOrder) ||
           DEFAULT_CONFIG.global.cardOrder.queueOrder,
         reviewOrder:
           (reviewOrder as ReviewSortOrder) ||
-          ((withEnvVars as any).global?.cardOrder?.reviewOrder) ||
+          (processed.global?.cardOrder?.reviewOrder) ||
           DEFAULT_CONFIG.global.cardOrder.reviewOrder,
         newCardOrder:
           (newCardOrder as NewCardGatherOrder) ||
-          ((withEnvVars as any).global?.cardOrder?.newCardOrder) ||
+          (processed.global?.cardOrder?.newCardOrder) ||
           DEFAULT_CONFIG.global.cardOrder.newCardOrder,
       },
     },
@@ -196,7 +208,7 @@ export async function saveConfig(config: GakuonConfig): Promise<void> {
 
   try {
     const processedConfig = reverseProcessConfigValues(config);
-    const tomlContent = stringify(processedConfig as Record<string, any>);
+    const tomlContent = stringify(processedConfig as JsonMap);
 
     const configWithHeader = `# Gakuon Configuration File
 # Generated on ${new Date().toISOString()}
