@@ -38,22 +38,20 @@ export default function AudioPlayer({
       setDuration(audio.duration);
     };
 
-    audioRefs.current.forEach((audio) => {
+    for (const audio of audioRefs.current) {
       if (audio) {
         audio.addEventListener("ended", handleAudioEnd);
         audio.addEventListener("timeupdate", () => handleTimeUpdate(audio));
       }
-    });
+    }
 
     return () => {
-      audioRefs.current.forEach((audio) => {
+      for (const audio of audioRefs.current) {
         if (audio) {
           audio.removeEventListener("ended", handleAudioEnd);
-          audio.removeEventListener("timeupdate", () =>
-            handleTimeUpdate(audio),
-          );
+          audio.removeEventListener("timeupdate", () => handleTimeUpdate(audio));
         }
-      });
+      }
     };
   }, [currentAudioIndex, audioUrls.length, setCurrentAudioIndex, setIsPlaying]);
 
@@ -106,6 +104,9 @@ export default function AudioPlayer({
           ref={progressBarRef}
           className="h-2 bg-white/20 dark:bg-gray-600 rounded-full cursor-pointer relative"
           onClick={handleProgressBarClick}
+          role="button"
+          tabIndex={0}
+          onKeyDown={(e) => { if (e.key === "Enter" || e.key === " ") handleProgressBarClick(e as any); }}
         >
           <div
             className="absolute h-full bg-white/50 dark:bg-blue-500 rounded-full"
@@ -115,6 +116,7 @@ export default function AudioPlayer({
 
         <div className="flex justify-center items-center gap-4">
           <button
+            type="button"
             onClick={() => {
               if (currentAudioIndex > 0) {
                 audioRefs.current[currentAudioIndex]?.pause();
@@ -132,6 +134,7 @@ export default function AudioPlayer({
             <SkipBack size={24} weight="fill" />
           </button>
           <button
+            type="button"
             onClick={handlePlayPause}
             className="w-12 h-12 flex items-center justify-center bg-white/25 dark:bg-blue-500 rounded-full hover:bg-white/40 dark:hover:bg-blue-600 transition transform hover:scale-105"
             title={isPlaying ? "Pause" : "Play"}
@@ -143,6 +146,7 @@ export default function AudioPlayer({
             )}
           </button>
           <button
+            type="button"
             onClick={() => {
               if (currentAudioIndex < audioUrls.length - 1) {
                 audioRefs.current[currentAudioIndex]?.pause();
@@ -178,6 +182,7 @@ export default function AudioPlayer({
           <source
             src={`${getApiBase()}/audio/${url.replace("[sound:", "").replace("]", "")}`}
           />
+          <track default kind="captions" label="Captions" srcLang="en" src=""/>
         </audio>
       ))}
     </div>

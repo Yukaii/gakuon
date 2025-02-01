@@ -72,9 +72,9 @@ export async function test(options: TestOptions = {}) {
     for (const [index, card] of sampleCards.entries()) {
       console.log(`\nTest ${index + 1}/${sampleSize}:`);
       console.log("Card Fields:");
-      Object.entries(card.fields).forEach(([field, { value }]) => {
+      for (const [field, { value }] of Object.entries(card.fields)) {
         console.log(`${field}: ${value}`);
-      });
+      }
 
       try {
         console.log("\nGenerated Content:");
@@ -82,12 +82,12 @@ export async function test(options: TestOptions = {}) {
           card as Card,
           deckConfig,
         );
-        Object.entries(content).forEach(([field, value]) => {
+        for (const [field, value] of Object.entries(content)) {
           console.log(`\n${field}:`);
           console.log(value);
-        });
+        }
       } catch (error) {
-        console.error(`\nError generating content:`, error);
+        console.error("\nError generating content:", error);
       }
 
       if (index < sampleSize - 1) {

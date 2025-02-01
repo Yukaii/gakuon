@@ -50,7 +50,7 @@ const ENV_VAR_MAPPINGS = {
 // Keys that should undergo environment variable interpolation
 const ALLOWED_ENV_KEYS = new Set(Object.keys(ENV_VAR_MAPPINGS));
 
-function processConfigValues(obj: any, path: string[] = []): any {
+function processConfigValues(obj: unknown, path: string[] = []): unknown {
   if (typeof obj === "string") {
     const fullPath = path.join(".");
     if (ALLOWED_ENV_KEYS.has(fullPath)) {
@@ -72,7 +72,7 @@ function processConfigValues(obj: any, path: string[] = []): any {
   }
 
   if (obj && typeof obj === "object") {
-    const processed: any = {};
+    const processed: Record<string, unknown> = {};
     for (const [key, value] of Object.entries(obj)) {
       processed[key] = processConfigValues(value, [...path, key]);
     }
@@ -82,7 +82,7 @@ function processConfigValues(obj: any, path: string[] = []): any {
   return obj;
 }
 
-function processRawConfig(rawConfig: any): GakuonConfig {
+function processRawConfig(rawConfig: unknown): GakuonConfig {
   // Process environment variables first
   const withEnvVars = processConfigValues(rawConfig);
 
@@ -131,7 +131,7 @@ export function loadConfig(customPath?: string): GakuonConfig {
       const decodedConfig = Buffer.from(base64Config, "base64").toString(
         "utf-8",
       );
-      const rawConfig = parse(decodedConfig) as any;
+      const rawConfig = parse(decodedConfig);
       return processRawConfig(rawConfig);
     } catch (error) {
       console.warn("Failed to parse BASE64_GAKUON_CONFIG:", error);
@@ -147,7 +147,7 @@ export function loadConfig(customPath?: string): GakuonConfig {
   }
 
   const configFile = readFileSync(configPath, "utf-8");
-  const rawConfig = parse(configFile) as any;
+  const rawConfig = parse(configFile);
   return processRawConfig(rawConfig);
 }
 
@@ -159,7 +159,7 @@ export function findDeckConfig(
   return configs.find((config) => new RegExp(config.pattern).test(deckName));
 }
 
-function reverseProcessConfigValues(obj: any, path: string[] = []): any {
+function reverseProcessConfigValues(obj: unknown, path: string[] = []): unknown {
   if (typeof obj === "string") {
     const fullPath = path.join(".");
     if (ALLOWED_ENV_KEYS.has(fullPath)) {
