@@ -97,26 +97,26 @@ function processRawConfig(rawConfig: unknown): GakuonConfig {
     chatModel: DEFAULT_CONFIG.global.openai.chatModel,
     initModel: DEFAULT_CONFIG.global.openai.initModel,
     ttsModel: DEFAULT_CONFIG.global.openai.ttsModel,
-    ...(withEnvVars.global?.openai || {}),
+    ...((withEnvVars as any).global?.openai || {}),
   };
 
   return {
-    ...withEnvVars,
+    ...((withEnvVars as any)),
     global: {
-      ...withEnvVars.global,
+      ...((withEnvVars as any).global),
       openai: openaiConfig,
       cardOrder: {
         queueOrder:
           (queueOrder as QueueOrder) ||
-          withEnvVars.global.cardOrder?.queueOrder ||
+          ((withEnvVars as any).global?.cardOrder?.queueOrder) ||
           DEFAULT_CONFIG.global.cardOrder.queueOrder,
         reviewOrder:
           (reviewOrder as ReviewSortOrder) ||
-          withEnvVars.global.cardOrder?.reviewOrder ||
+          ((withEnvVars as any).global?.cardOrder?.reviewOrder) ||
           DEFAULT_CONFIG.global.cardOrder.reviewOrder,
         newCardOrder:
           (newCardOrder as NewCardGatherOrder) ||
-          withEnvVars.global.cardOrder?.newCardOrder ||
+          ((withEnvVars as any).global?.cardOrder?.newCardOrder) ||
           DEFAULT_CONFIG.global.cardOrder.newCardOrder,
       },
     },
@@ -196,7 +196,7 @@ export async function saveConfig(config: GakuonConfig): Promise<void> {
 
   try {
     const processedConfig = reverseProcessConfigValues(config);
-    const tomlContent = stringify(processedConfig);
+    const tomlContent = stringify(processedConfig as Record<string, any>);
 
     const configWithHeader = `# Gakuon Configuration File
 # Generated on ${new Date().toISOString()}
