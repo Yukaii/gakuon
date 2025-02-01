@@ -50,6 +50,12 @@ export async function regenerateCard(
   return response.json();
 }
 
+export async function sync(): Promise<{ success: boolean }> {
+  const response = await fetch(`${getApiBase()}/sync`, { method: "POST" });
+  if (!response.ok) throw new Error("Failed to sync");
+  return response.json();
+}
+
 export async function fetchDeckConfig(
   deckName: string,
 ): Promise<DeckConfigResponse> {
