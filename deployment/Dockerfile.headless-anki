@@ -11,6 +11,8 @@ RUN apt-get update && apt-get install --no-install-recommends -y \
     if [ "$TARGETARCH" = "arm64" ]; then \
         apt-get install --no-install-recommends -y \
         python3-pyqt6.qtquick python3-pyqt6.qtwebengine python3-pyqt6.qtmultimedia; \
+    else \
+        apt-get install --no-install-recommends -y libatomic1; \
     fi && \
     rm -rf /var/lib/apt/lists/*
 
