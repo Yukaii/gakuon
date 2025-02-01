@@ -16,11 +16,17 @@ cd gakuon
 
 2. If you plan to use Anki's built-in sync service (recommended for first-time setup), you'll need to configure X11 forwarding:
 
-   a. Add these lines to your SSH config (`~/.ssh/config`):
-   ```
-   ForwardX11 yes
-   ForwardX11Trusted yes
-   ```
+   a. Either:
+   - Add these lines to your SSH config (`~/.ssh/config`):
+     ```
+     ForwardX11 yes
+     ForwardX11Trusted yes
+     ```
+
+   - Or use the `-X` flag when connecting via SSH:
+     ```bash
+     ssh -X user@your-server
+     ```
 
    b. Prepare X11 authentication:
    ```bash
