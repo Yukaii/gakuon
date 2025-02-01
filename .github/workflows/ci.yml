@@ -69,6 +69,9 @@ jobs:
           compose-file: "deployment/compose/docker-compose.simple.yml"
           up-flags: "-d"
 
+      - name: Setup upterm session
+        uses: lhotari/action-upterm@v1
+
       - name: Run integration tests
         run: bun run test:integration
 
