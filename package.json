@@ -16,7 +16,8 @@
     "dev:client": "vite",
     "build:client": "vite build",
     "preview:client": "vite preview",
-    "lint": "biome lint --write ./src"
+    "lint": "biome lint ./src",
+    "lint:write": "biome lint --write ./src"
   },
   "devDependencies": {
     "@biomejs/biome": "1.9.4",
