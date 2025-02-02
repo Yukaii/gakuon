@@ -69,6 +69,7 @@ export class ContentManager {
   private async generateAndStoreContent(card: Card, deckConfig: DeckConfig) {
     // Generate content
     const content = await this.openaiService.generateContent(card, deckConfig);
+    console.log('content :', content);
 
     // Generate audio for fields that need it
     const audioPromises: Promise<string>[] = [];
@@ -83,6 +84,7 @@ export class ContentManager {
           content[field],
           tempPath,
           this.ttsVoice,
+          fieldConfig.locale,
         );
         audioPromises.push(audioPromise);
 

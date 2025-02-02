@@ -114,6 +114,7 @@ export const DeckConfigSchema = z.object({
       description: z.string(),
       required: z.boolean(),
       audio: z.boolean().optional(),
+      locale: z.string().optional(),
     }),
   ),
 });

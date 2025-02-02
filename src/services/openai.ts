@@ -89,7 +89,7 @@ export class OpenAIService {
 ${Object.entries(deckConfig.responseFields)
   .map(
     ([field, config]) =>
-      `- ${field}: ${config.description}${config.required ? " (required)" : " (optional)"}`,
+      `- ${field}: ${config.description}${config.required ? " (required)" : " (optional)"} ${config.locale ? `(locale: ${config.locale})` : ""}`,
   )
   .join("\n")}
   
@@ -156,13 +156,14 @@ ${Object.entries(deckConfig.responseFields)
     text: string,
     outputPath: string,
     voice: string,
+    locale: string = 'en-US',
   ): Promise<string> {
     // If the model is llama, use our custom tts
-    if (this.chatModel.includes("llama")) {
+    if (this.apiKey==="ollama") {
       try {
         this.debugLog("Generating audio for ollama model");
         // Use EdgeSpeechTTS for ollama model
-        const tts = new EdgeSpeechTTS({ locale: 'en-US' });
+        const tts = new EdgeSpeechTTS({ locale });
         const payload = {
         input: text,
         options: {

@@ -70,10 +70,12 @@ example.audio = true
 explanation_jp.description = "Simple explanation in Japanese"
 explanation_jp.required = true
 explanation_jp.audio = true
+explanation_jp.locale = "ja-JP"
 
 explanation_en.description = "Detailed explanation in English"
 explanation_en.required = true
 explanation_en.audio = true
+explanation_en.locale = "en-US"
 
 Requirements:
 1. Output valid TOML without any markdown formatting or code blocks

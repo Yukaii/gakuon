@@ -54,19 +54,19 @@ graph TD;
 
 ## Prerequisite
 
-* Setup Anki with AnkiConnect locally
-* ffplayer (installed along with ffmpeg)
+- Setup Anki with AnkiConnect locally
+- ffplayer (installed along with ffmpeg)
 
 ## Installation
 
-
-
 ### Install gakuon
+
 ```bash
 npm install -g gakuon
 ```
 
-### Install ffmpeg (OSX/Linux) 
+### Install ffmpeg (OSX/Linux)
+
 ```
 brew install ffmpeg
 ```
@@ -235,10 +235,12 @@ example.audio = true
 explanation_jp.description = "Simple explanation in Japanese"
 explanation_jp.required = true
 explanation_jp.audio = true
+explanation_jp.locale = "ja-JP"
 
 explanation_en.description = "Detailed explanation in English"
 explanation_en.required = true
 explanation_en.audio = true
+explanation_en.locale = "en-US"
 
 usage_notes.description = "Additional usage notes"
 usage_notes.required = false
