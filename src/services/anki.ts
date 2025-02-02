@@ -50,8 +50,8 @@ export class AnkiService {
       ],
     });
 
-    if (!exists) {
-      throw new Error(`Card with ID: [${cardId}] doesn't exist in this deck`);
+    if (!exists.length || !exists[0]) {
+      return false;
     }
 
     return true;
@@ -366,6 +366,14 @@ export class AnkiService {
   }
 
   async sync(): Promise<void> {
-    await this.request("sync", {});
+    try {
+      await this.request("sync", {});
+    } catch (e: any) {
+      if (e.message && e.message.includes("auth not configured")) {
+        // Skip syncing when auth is not configured
+        return;
+      }
+      throw e;
+    }
   }
 }
