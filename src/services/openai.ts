@@ -1,7 +1,7 @@
 import OpenAI from "openai";
 import { writeFile } from "node:fs/promises";
 import WebSocket from 'ws';
-global.WebSocket = WebSocket as any;
+global.WebSocket = WebSocket as unknown as typeof globalThis.WebSocket;
 
 import {
   type DeckConfig,
@@ -10,7 +10,6 @@ import {
   type DynamicContent,
 } from "../config/types";
 import { EdgeSpeechTTS } from '@lobehub/tts';
-import { Buffer } from 'buffer';
 
 export class OpenAIService {
   public client: OpenAI;
@@ -176,7 +175,9 @@ ${Object.entries(deckConfig.responseFields)
         writeFile(outputPath, mp3Buffer);
         return outputPath;
       } catch (error) {
-        throw error;
+        throw new PromptError("Audio generation failed", {
+          configIssues: [(error as Error).message],
+        });
       }
     }
 

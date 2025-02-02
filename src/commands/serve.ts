@@ -28,7 +28,7 @@ export async function serve(options: ServeOptions = {}) {
     config.global.openai.ttsModel,
     debug,
   );
-  const contentManager = new ContentManager(ankiService, openaiService, debug);
+  const contentManager = new ContentManager(ankiService, openaiService, config.global.ttsVoice,debug);
 
   // Create and start server
   const app = createServer({

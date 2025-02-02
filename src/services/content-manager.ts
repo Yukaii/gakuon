@@ -11,8 +11,8 @@ export class ContentManager {
   constructor(
     private ankiService: AnkiService,
     private openaiService: OpenAIService,
-    private debug = false,
     private ttsVoice: string,
+    private debug = false,
   ) {
     this.debugLog("Using tmpDir", this.tmpDir);
   }
