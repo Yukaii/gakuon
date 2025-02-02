@@ -107,10 +107,14 @@ export function createServer(deps: ServerDependencies) {
   app.get(
     "/api/decks",
     asyncHandler(async (_req, res: Response) => {
-      const decks = await deps.ankiService.getDeckNames();
-      res.json({
-        decks: decks,
-      });
+      try {
+        const decks = await deps.ankiService.getDeckNames();
+        res.json({
+          decks: decks,
+        });
+      } catch (e: unknown) {
+        res.status(500).json({ error: (e as { message?: string })?.message || "Unknown error" });
+      }
     }),
   );
 
@@ -124,9 +128,10 @@ export function createServer(deps: ServerDependencies) {
 
   const getCardDetails = async (req: Request, res: Response) => {
     const cardId = Number.parseInt(req.params.id, 10);
-    const [card] = await deps.ankiService.getCardsInfo([cardId]);
+    const cards = await deps.ankiService.getCardsInfo([cardId]);
+    const card = (Array.isArray(cards) && cards.length > 0) ? cards[0] : null;
 
-    if (!card) {
+    if (!card || card.cardId == null) {
       res.status(404).json({ error: "Card not found" });
       return;
     }
