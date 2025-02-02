@@ -112,8 +112,8 @@ export function createServer(deps: ServerDependencies) {
         res.json({
           decks: decks,
         });
-      } catch (e: any) {
-        res.status(500).json({ error: e.message });
+      } catch (e: unknown) {
+        res.status(500).json({ error: (e as { message?: string })?.message || "Unknown error" });
       }
     }),
   );
