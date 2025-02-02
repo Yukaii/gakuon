@@ -156,7 +156,7 @@ ${Object.entries(deckConfig.responseFields)
     text: string,
     outputPath: string,
     voice: string,
-    locale: string = 'en-US',
+    locale = 'en-US',
   ): Promise<string> {
     // If the model is llama, use our custom tts
     if (this.apiKey==="ollama") {
