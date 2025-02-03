@@ -202,8 +202,12 @@ ${Object.entries(deckConfig.responseFields)
         });
       }
     } catch (error) {
-      throw new PromptError("Audio generation failed", {
-        configIssues: [(error as Error).message],
+      throw new AudioGenerationError("Audio generation failed", {
+        messages: [
+          (error as Error).message,
+          `TTS method: ${this.ttsMethod}`,
+          `TTS model: ${this.ttsModel}`,
+        ],
       });
     }
 
