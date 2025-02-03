@@ -1,6 +1,6 @@
 import OpenAI from "openai";
 import { writeFile } from "node:fs/promises";
-import WebSocket from 'ws';
+import WebSocket from "ws";
 global.WebSocket = WebSocket as unknown as typeof globalThis.WebSocket;
 
 import {
@@ -9,7 +9,7 @@ import {
   PromptError,
   type DynamicContent,
 } from "../config/types";
-import { EdgeSpeechTTS } from '@lobehub/tts';
+import { EdgeSpeechTTS } from "@lobehub/tts";
 
 export class OpenAIService {
   public client: OpenAI;
@@ -21,7 +21,6 @@ export class OpenAIService {
     private ttsModel = "tts-1",
     private debug = false,
   ) {
-   
     this.client = new OpenAI({
       apiKey,
       baseURL: baseUrl,
@@ -120,12 +119,11 @@ ${Object.entries(deckConfig.responseFields)
           messages: [{ role: "user", content: fullPrompt }],
           response_format: { type: "json_object" },
         });
-        
+
         const response = JSON.parse(
           // biome-ignore lint/style/noNonNullAssertion: <explanation>
           completion.choices[0].message.content!,
         ) as Record<string, string>;
-
 
         // Validate required fields
         const missingRequired = Object.entries(deckConfig.responseFields)
@@ -140,7 +138,6 @@ ${Object.entries(deckConfig.responseFields)
           missingFields: missingRequired,
         });
         this.debugLog("Now Regenerating");
-
       } catch (error) {
         if (error instanceof PromptError) {
           throw error;
@@ -156,22 +153,22 @@ ${Object.entries(deckConfig.responseFields)
     text: string,
     outputPath: string,
     voice: string,
-    locale = 'en-US',
+    locale = "en-US",
   ): Promise<string> {
     // If the model is llama, use our custom tts
-    if (this.apiKey==="ollama") {
+    if (this.apiKey === "ollama") {
       try {
         this.debugLog("Generating audio for ollama model");
         // Use EdgeSpeechTTS for ollama model
         const tts = new EdgeSpeechTTS({ locale });
         const payload = {
-        input: text,
-        options: {
-          voice: voice,
-        },
-      };
+          input: text,
+          options: {
+            voice: voice,
+          },
+        };
 
-      const response = await tts.create(payload);
+        const response = await tts.create(payload);
         const mp3Buffer = Buffer.from(await response.arrayBuffer());
         writeFile(outputPath, mp3Buffer);
         return outputPath;

@@ -28,7 +28,7 @@ export async function serve(options: ServeOptions = {}) {
     config.global.openai.ttsModel,
     debug,
   );
-  const contentManager = new ContentManager(ankiService, openaiService,debug);
+  const contentManager = new ContentManager(ankiService, openaiService, debug);
 
   // Create and start server
   const app = createServer({
@@ -57,6 +57,6 @@ export async function serve(options: ServeOptions = {}) {
   // Start listening
   server = app.listen(port, () => {
     console.log(`Gakuon server running at http://localhost:${port}`);
-    console.log(`Using anki connect server at ${config.global.ankiHost}`)
+    console.log(`Using anki connect server at ${config.global.ankiHost}`);
   });
 }

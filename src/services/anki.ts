@@ -369,7 +369,9 @@ export class AnkiService {
     try {
       await this.request("sync", {});
     } catch (e: unknown) {
-      if ((e as { message?: string })?.message?.includes("auth not configured")) {
+      if (
+        (e as { message?: string })?.message?.includes("auth not configured")
+      ) {
         // Skip syncing when auth is not configured
         return;
       }
