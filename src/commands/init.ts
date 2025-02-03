@@ -104,6 +104,7 @@ export async function init(options: InitOptions = {}) {
       config.global.openai.baseUrl,
       config.global.openai.chatModel,
       config.global.openai.ttsModel,
+      config.global.ttsMethod,
       debug,
     );
 

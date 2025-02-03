@@ -1,6 +1,7 @@
 import OpenAI from "openai";
 import { writeFile } from "node:fs/promises";
 import WebSocket from "ws";
+import { TtsMethod } from "../config/types";
 global.WebSocket = WebSocket as unknown as typeof globalThis.WebSocket;
 
 import {
@@ -19,6 +20,7 @@ export class OpenAIService {
     private baseUrl = "https://api.openai.com/v1",
     private chatModel = "gpt-4o",
     private ttsModel = "tts-1",
+    private ttsMethod = TtsMethod.OPENAI,
     private debug = false,
   ) {
     this.client = new OpenAI({
@@ -155,8 +157,8 @@ ${Object.entries(deckConfig.responseFields)
     voice: string,
     locale = "en-US",
   ): Promise<string> {
-    // If the model is llama, use our custom tts
-    if (this.apiKey === "ollama") {
+    // If the tts method is ollama, use our custom tts
+    if (this.ttsMethod === TtsMethod.OLLAMA) {
       try {
         this.debugLog("Generating audio for ollama model");
         // Use EdgeSpeechTTS for ollama model

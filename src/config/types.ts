@@ -82,6 +82,11 @@ export enum QueueOrder {
   MIXED = "mixed",
 }
 
+export enum TtsMethod {
+  OPENAI = "openai",
+  OLLAMA = "ollama",
+}
+
 export const OpenAIConfigSchema = z.object({
   baseUrl: z.string(),
   chatModel: z.string(),
@@ -98,6 +103,7 @@ export const CardOrderSchema = z.object({
 export const GlobalConfigSchema = z.object({
   ankiHost: z.string(),
   openaiApiKey: z.string(),
+  ttsMethod: z.string(),
   ttsVoice: z.string(),
   defaultDeck: z.string().optional(),
   openai: OpenAIConfigSchema,
