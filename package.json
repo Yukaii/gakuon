@@ -9,6 +9,7 @@
   "scripts": {
     "test:integration": "jest --config jest.integration.config.js",
     "start": "bun run src/index.ts",
+    "dev": "bun run --hot src/index.ts serve",
     "build": "bun build src/index.ts --target=node --outfile dist/gakuon",
     "prepublishOnly": "rm -rf dist && bun run build && bun run build:client",
     "fmt": "bunx biome format --write ./src",
