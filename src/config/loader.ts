@@ -12,6 +12,7 @@ import {
   NewCardGatherOrder,
   QueueOrder,
   ReviewSortOrder,
+  TtsMethod,
 } from "./types";
 
 export const DEFAULT_CONFIG: GakuonConfig = {
@@ -19,7 +20,7 @@ export const DEFAULT_CONFIG: GakuonConfig = {
     ankiHost: "http://localhost:8765",
     openaiApiKey: "${OPENAI_API_KEY}",
     ttsVoice: "alloy",
-    ttsMethod: "openai",
+    ttsMethod: TtsMethod.OPENAI,
     openai: {
       baseUrl: "https://api.openai.com/v1",
       chatModel: "gpt-4o",

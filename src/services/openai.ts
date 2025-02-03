@@ -20,7 +20,7 @@ export class OpenAIService {
     private baseUrl = "https://api.openai.com/v1",
     private chatModel = "gpt-4o",
     private ttsModel = "tts-1",
-    private ttsMethod = TtsMethod.OPENAI,
+    public ttsMethod = TtsMethod.OPENAI,
     private debug = false,
   ) {
     this.client = new OpenAI({

@@ -113,8 +113,8 @@ export const CardOrderSchema = z.object({
 export const GlobalConfigSchema = z.object({
   ankiHost: z.string(),
   openaiApiKey: z.string(),
-  ttsMethod: z.string(),
-  ttsVoice: z.string(),
+  ttsMethod: z.nativeEnum(TtsMethod),
+  ttsVoice: z.string().optional(),
   defaultDeck: z.string().optional(),
   openai: OpenAIConfigSchema,
   cardOrder: CardOrderSchema,
@@ -125,6 +125,7 @@ export const DeckConfigSchema = z.object({
   pattern: z.string(),
   fields: z.record(z.string()),
   prompt: z.string(),
+  ttsVoice: z.string().optional(),
   responseFields: z.record(
     z.object({
       description: z.string(),
@@ -136,7 +137,20 @@ export const DeckConfigSchema = z.object({
   ),
 });
 
-export const GakuonConfigSchema = z.object({
-  global: GlobalConfigSchema,
-  decks: z.array(DeckConfigSchema),
-});
+export const GakuonConfigSchema = z
+  .object({
+    global: GlobalConfigSchema,
+    decks: z.array(DeckConfigSchema),
+  })
+
+  .refine(
+    (data) =>
+      data.global.ttsMethod !== TtsMethod.OLLAMA ||
+      data.decks.every((deck) =>
+        Object.values(deck.responseFields).every((field) => !!field.ttsVoice),
+      ),
+    {
+      message: "responseFields.ttsVoice is required when ttsMethod is ollama",
+      path: ["decks", "responseFields", "ttsVoice"],
+    },
+  );
