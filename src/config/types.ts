@@ -25,6 +25,16 @@ export class PromptError extends Error {
   }
 }
 
+export class AudioGenerationError extends Error {
+  constructor(
+    message: string,
+    public details: { messages: string[] },
+  ) {
+    super(message);
+    this.name = "AudioGenerationError";
+  }
+}
+
 export type OpenAIConfig = z.infer<typeof OpenAIConfigSchema>;
 
 export type GakuonConfig = z.infer<typeof GakuonConfigSchema>;

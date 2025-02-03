@@ -1,7 +1,7 @@
 import OpenAI from "openai";
 import { writeFile } from "node:fs/promises";
 import WebSocket from "ws";
-import { TtsMethod } from "../config/types";
+import { AudioGenerationError, TtsMethod } from "../config/types";
 global.WebSocket = WebSocket as unknown as typeof globalThis.WebSocket;
 
 import {
@@ -101,7 +101,10 @@ ${Object.entries(deckConfig.responseFields)
     card: Card,
     deckConfig: DeckConfig,
   ): Promise<DynamicContent> {
-    while (true) {
+    let attempts = 0;
+    const MAX_ATTEMPTS = 5;
+
+    while (attempts < MAX_ATTEMPTS) {
       try {
         // Validate fields before processing
         this.validateFields(card, deckConfig);
@@ -139,16 +142,28 @@ ${Object.entries(deckConfig.responseFields)
         this.debugLog("AI response missing required fields", {
           missingFields: missingRequired,
         });
-        this.debugLog("Now Regenerating");
+
+        this.debugLog(
+          `Now Regenerating ... remaining attempts: ${MAX_ATTEMPTS - attempts}`,
+        );
+
+        attempts++;
       } catch (error) {
         if (error instanceof PromptError) {
           throw error;
         }
-        throw new PromptError("Content generation failed", {
-          configIssues: [(error as Error).message],
+
+        throw new AudioGenerationError("Content generation failed", {
+          messages: [(error as Error).message],
         });
       }
     }
+
+    throw new AudioGenerationError("Content generation failed", {
+      messages: [
+        "Max attempts reached, but didn't get all of the required fields",
+      ],
+    });
   }
 
   async generateAudio(
@@ -157,39 +172,42 @@ ${Object.entries(deckConfig.responseFields)
     voice: string,
     locale = "en-US",
   ): Promise<string> {
-    // If the tts method is ollama, use our custom tts
-    if (this.ttsMethod === TtsMethod.OLLAMA) {
-      try {
-        this.debugLog("Generating audio for ollama model");
+    let mp3Buffer: Response;
+
+    // If the tts method is set to ollama, use our own tts service: EdgeSpeechTTS
+    try {
+      this.debugLog(
+        `Generating audio with ${
+          this.ttsMethod === TtsMethod.OLLAMA ? "EdgeSpeechTTS" : "OpenAI"
+        } service`,
+      );
+
+      if (this.ttsMethod === TtsMethod.OLLAMA) {
         // Use EdgeSpeechTTS for ollama model
         const tts = new EdgeSpeechTTS({ locale });
-        const payload = {
+
+        mp3Buffer = await tts.create({
           input: text,
           options: {
             voice: voice,
           },
-        };
-
-        const response = await tts.create(payload);
-        const mp3Buffer = Buffer.from(await response.arrayBuffer());
-        writeFile(outputPath, mp3Buffer);
-        return outputPath;
-      } catch (error) {
-        throw new PromptError("Audio generation failed", {
-          configIssues: [(error as Error).message],
+        });
+      } else {
+        // logic for openai models
+        mp3Buffer = await this.client.audio.speech.create({
+          model: this.ttsModel,
+          // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+          voice: voice as any,
+          input: text,
         });
       }
+    } catch (error) {
+      throw new PromptError("Audio generation failed", {
+        configIssues: [(error as Error).message],
+      });
     }
 
-    // Default logic for openai models
-    const mp3 = await this.client.audio.speech.create({
-      model: this.ttsModel,
-      // biome-ignore lint/suspicious/noExplicitAny: <explanation>
-      voice: voice as any,
-      input: text,
-    });
-
-    const buffer = Buffer.from(await mp3.arrayBuffer());
+    const buffer = Buffer.from(await mp3Buffer.arrayBuffer());
     await writeFile(outputPath, buffer);
     return outputPath;
   }
