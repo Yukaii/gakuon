@@ -75,7 +75,7 @@ export class ContentManager {
 
     if (ttsMethod === TtsMethod.OPENAI) {
       const selectedVoice =
-        globalTtsVoice || deckConfig.ttsVoice || fieldConfig.ttsVoice;
+         fieldConfig.ttsVoice || deckConfig.ttsVoice || globalTtsVoice;
 
       this.debugLog(
         `Getting tts voice for ${TtsMethod.OPENAI}, using: ${selectedVoice}`,
