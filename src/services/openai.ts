@@ -178,11 +178,11 @@ ${Object.entries(deckConfig.responseFields)
     try {
       this.debugLog(
         `Generating audio with ${
-          this.ttsMethod === TtsMethod.OLLAMA ? "EdgeSpeechTTS" : "OpenAI"
+          this.ttsMethod === TtsMethod.EDGE_TTS ? "EdgeSpeechTTS" : "OpenAI"
         } service`,
       );
 
-      if (this.ttsMethod === TtsMethod.OLLAMA) {
+      if (this.ttsMethod === TtsMethod.EDGE_TTS) {
         // Use EdgeSpeechTTS for ollama model
         const tts = new EdgeSpeechTTS({ locale });
 

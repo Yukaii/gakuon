@@ -83,9 +83,9 @@ export class ContentManager {
       // for openai ttsMethod, it doesn't matter what voice config you use
       return selectedVoice;
     }
-    if (ttsMethod === TtsMethod.OLLAMA) {
+    if (ttsMethod === TtsMethod.EDGE_TTS) {
       this.debugLog(
-        `Getting tts voice for ${TtsMethod.OLLAMA}, using: ${fieldConfig.ttsVoice}`,
+        `Getting tts voice for ${TtsMethod.EDGE_TTS}, using: ${fieldConfig.ttsVoice}`,
       );
       // for ollama (we use EdgeTTS) , you have to set voice with the same locale code on the responseField.
       return fieldConfig.ttsVoice;

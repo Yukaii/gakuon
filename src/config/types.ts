@@ -94,7 +94,7 @@ export enum QueueOrder {
 
 export enum TtsMethod {
   OPENAI = "openai",
-  OLLAMA = "ollama",
+  EDGE_TTS = "edge-tts",
 }
 
 export const OpenAIConfigSchema = z.object({
@@ -145,12 +145,12 @@ export const GakuonConfigSchema = z
 
   .refine(
     (data) =>
-      data.global.ttsMethod !== TtsMethod.OLLAMA ||
+      data.global.ttsMethod !== TtsMethod.EDGE_TTS ||
       data.decks.every((deck) =>
         Object.values(deck.responseFields).every((field) => !!field.ttsVoice),
       ),
     {
-      message: "responseFields.ttsVoice is required when ttsMethod is ollama",
+      message: "responseFields.ttsVoice is required when ttsMethod is edge-tts",
       path: ["decks", "responseFields", "ttsVoice"],
     },
   );
