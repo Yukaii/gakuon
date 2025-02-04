@@ -25,6 +25,7 @@ export async function test(options: TestOptions = {}) {
       config.global.openai.baseUrl,
       config.global.openai.chatModel,
       config.global.openai.ttsModel,
+      config.global.ttsMethod,
       debug,
     );
 

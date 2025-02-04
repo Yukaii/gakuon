@@ -12,6 +12,7 @@ import {
   NewCardGatherOrder,
   QueueOrder,
   ReviewSortOrder,
+  TtsMethod,
 } from "./types";
 
 export const DEFAULT_CONFIG: GakuonConfig = {
@@ -19,6 +20,7 @@ export const DEFAULT_CONFIG: GakuonConfig = {
     ankiHost: "http://localhost:8765",
     openaiApiKey: "${OPENAI_API_KEY}",
     ttsVoice: "alloy",
+    ttsMethod: TtsMethod.OPENAI,
     openai: {
       baseUrl: "https://api.openai.com/v1",
       chatModel: "gpt-4o",
@@ -110,7 +112,7 @@ function processRawConfig(rawConfig: unknown): GakuonConfig {
     ...(processed.global?.openai || {}),
   };
 
-  const configObj = {
+  const configObj: GakuonConfig = {
     ...processed,
     decks: processed.decks || DEFAULT_CONFIG.decks,
     global: {
@@ -118,6 +120,7 @@ function processRawConfig(rawConfig: unknown): GakuonConfig {
       openaiApiKey:
         processed.global?.openaiApiKey || DEFAULT_CONFIG.global.openaiApiKey,
       ttsVoice: processed.global?.ttsVoice || DEFAULT_CONFIG.global.ttsVoice,
+      ttsMethod: processed.global?.ttsMethod || DEFAULT_CONFIG.global.ttsMethod,
       defaultDeck: processed.global?.defaultDeck,
       openai: openaiConfig,
       cardOrder: {
@@ -170,7 +173,6 @@ export function loadConfig(customPath?: string): GakuonConfig {
 
   // Fall back to file-based config
   const configPath = customPath || join(homedir(), ".gakuon", "config.toml");
-
   if (!existsSync(configPath)) {
     saveConfig(DEFAULT_CONFIG);
   }

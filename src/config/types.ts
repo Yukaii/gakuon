@@ -25,6 +25,16 @@ export class PromptError extends Error {
   }
 }
 
+export class AudioGenerationError extends Error {
+  constructor(
+    message: string,
+    public details: { messages: string[] },
+  ) {
+    super(message);
+    this.name = "AudioGenerationError";
+  }
+}
+
 export type OpenAIConfig = z.infer<typeof OpenAIConfigSchema>;
 
 export type GakuonConfig = z.infer<typeof GakuonConfigSchema>;
@@ -82,6 +92,11 @@ export enum QueueOrder {
   MIXED = "mixed",
 }
 
+export enum TtsMethod {
+  OPENAI = "openai",
+  EDGE_TTS = "edge-tts",
+}
+
 export const OpenAIConfigSchema = z.object({
   baseUrl: z.string(),
   chatModel: z.string(),
@@ -98,7 +113,8 @@ export const CardOrderSchema = z.object({
 export const GlobalConfigSchema = z.object({
   ankiHost: z.string(),
   openaiApiKey: z.string(),
-  ttsVoice: z.string(),
+  ttsMethod: z.nativeEnum(TtsMethod),
+  ttsVoice: z.string().optional(),
   defaultDeck: z.string().optional(),
   openai: OpenAIConfigSchema,
   cardOrder: CardOrderSchema,
@@ -109,16 +125,32 @@ export const DeckConfigSchema = z.object({
   pattern: z.string(),
   fields: z.record(z.string()),
   prompt: z.string(),
+  ttsVoice: z.string().optional(),
   responseFields: z.record(
     z.object({
       description: z.string(),
       required: z.boolean(),
       audio: z.boolean().optional(),
+      locale: z.string().optional(),
+      ttsVoice: z.string().optional(),
     }),
   ),
 });
 
-export const GakuonConfigSchema = z.object({
-  global: GlobalConfigSchema,
-  decks: z.array(DeckConfigSchema),
-});
+export const GakuonConfigSchema = z
+  .object({
+    global: GlobalConfigSchema,
+    decks: z.array(DeckConfigSchema),
+  })
+
+  .refine(
+    (data) =>
+      data.global.ttsMethod !== TtsMethod.EDGE_TTS ||
+      data.decks.every((deck) =>
+        Object.values(deck.responseFields).every((field) => !!field.ttsVoice),
+      ),
+    {
+      message: "responseFields.ttsVoice is required when ttsMethod is edge-tts",
+      path: ["decks", "responseFields", "ttsVoice"],
+    },
+  );

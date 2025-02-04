@@ -66,11 +66,13 @@ export async function learn(options: LearnOptions = {}) {
     config.global.openai.baseUrl,
     config.global.openai.chatModel,
     config.global.openai.ttsModel,
+    config.global.ttsMethod,
     options.debug,
   );
   const contentManager = new ContentManager(
     ankiService,
     openaiService,
+    config.global.ttsVoice,
     options.debug,
   );
   const audioPlayer = new AudioPlayer(ankiService, options.debug);
