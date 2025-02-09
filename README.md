@@ -231,6 +231,10 @@ Generate helpful learning content.
 example.description = "A natural example sentence using the word"
 example.required = true
 example.audio = true
+example.locale = "ja-JP"
+# Set ttsVoice when use edge-tts
+# You can found list by using tools like https://github.com/andresayac/edge-tts
+example.ttsVoice = "ja-JP-NanamiNeural"
 
 explanation_jp.description = "Simple explanation in Japanese"
 explanation_jp.required = true
