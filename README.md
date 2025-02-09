@@ -54,19 +54,19 @@ graph TD;
 
 ## Prerequisite
 
-* Setup Anki with AnkiConnect locally
-* ffplayer (installed along with ffmpeg)
+- Setup Anki with AnkiConnect locally
+- ffplayer (installed along with ffmpeg)
 
 ## Installation
 
-
-
 ### Install gakuon
+
 ```bash
 npm install -g gakuon
 ```
 
-### Install ffmpeg (OSX/Linux) 
+### Install ffmpeg (OSX/Linux)
+
 ```
 brew install ffmpeg
 ```
@@ -231,14 +231,20 @@ Generate helpful learning content.
 example.description = "A natural example sentence using the word"
 example.required = true
 example.audio = true
+example.locale = "ja-JP"
+# Set ttsVoice when use edge-tts
+# You can found list by using tools like https://github.com/andresayac/edge-tts
+example.ttsVoice = "ja-JP-NanamiNeural"
 
 explanation_jp.description = "Simple explanation in Japanese"
 explanation_jp.required = true
 explanation_jp.audio = true
+explanation_jp.locale = "ja-JP"
 
 explanation_en.description = "Detailed explanation in English"
 explanation_en.required = true
 explanation_en.audio = true
+explanation_en.locale = "en-US"
 
 usage_notes.description = "Additional usage notes"
 usage_notes.required = false

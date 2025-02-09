@@ -1,11 +1,16 @@
 import OpenAI from "openai";
 import { writeFile } from "node:fs/promises";
+import WebSocket from "ws";
+import { AudioGenerationError, TtsMethod } from "../config/types";
+global.WebSocket = WebSocket as unknown as typeof globalThis.WebSocket;
+
 import {
   type DeckConfig,
   type Card,
   PromptError,
   type DynamicContent,
 } from "../config/types";
+import { EdgeSpeechTTS } from "@lobehub/tts";
 
 export class OpenAIService {
   public client: OpenAI;
@@ -15,6 +20,7 @@ export class OpenAIService {
     private baseUrl = "https://api.openai.com/v1",
     private chatModel = "gpt-4o",
     private ttsModel = "tts-1",
+    public ttsMethod = TtsMethod.OPENAI,
     private debug = false,
   ) {
     this.client = new OpenAI({
@@ -84,75 +90,128 @@ export class OpenAIService {
 ${Object.entries(deckConfig.responseFields)
   .map(
     ([field, config]) =>
-      `- ${field}: ${config.description}${config.required ? " (required)" : " (optional)"}`,
+      `- ${field}: ${config.description}${config.required ? " (required)" : " (optional)"} ${config.locale ? `(locale: ${config.locale})` : ""}`,
   )
-  .join("\n")}`;
+  .join("\n")}
+  
+  Required fields must be present in the response.`;
   }
 
   async generateContent(
     card: Card,
     deckConfig: DeckConfig,
   ): Promise<DynamicContent> {
-    try {
-      // Validate fields before processing
-      this.validateFields(card, deckConfig);
+    let attempts = 0;
+    const MAX_ATTEMPTS = 5;
 
-      // Replace field references in prompt
-      const processedPrompt = this.replaceFieldReferences(
-        deckConfig.prompt,
-        card,
-        deckConfig,
-      );
+    while (attempts < MAX_ATTEMPTS) {
+      try {
+        // Validate fields before processing
+        this.validateFields(card, deckConfig);
 
-      const fullPrompt = `${processedPrompt}\n\n${this.generateResponseFormat(deckConfig)}`;
-      this.debugLog(fullPrompt);
+        // Replace field references in prompt
+        const processedPrompt = this.replaceFieldReferences(
+          deckConfig.prompt,
+          card,
+          deckConfig,
+        );
 
-      const completion = await this.client.chat.completions.create({
-        model: this.chatModel,
-        messages: [{ role: "user", content: fullPrompt }],
-        response_format: { type: "json_object" },
-      });
+        const fullPrompt = `${processedPrompt}\n\n${this.generateResponseFormat(deckConfig)}`;
+        this.debugLog(fullPrompt);
+        this.debugLog(this.chatModel);
+        const completion = await this.client.chat.completions.create({
+          model: this.chatModel,
+          messages: [{ role: "user", content: fullPrompt }],
+          response_format: { type: "json_object" },
+        });
 
-      const response = JSON.parse(
-        // biome-ignore lint/style/noNonNullAssertion: <explanation>
-        completion.choices[0].message.content!,
-      ) as Record<string, string>;
+        const response = JSON.parse(
+          // biome-ignore lint/style/noNonNullAssertion: <explanation>
+          completion.choices[0].message.content!,
+        ) as Record<string, string>;
 
-      // Validate required fields
-      const missingRequired = Object.entries(deckConfig.responseFields)
-        .filter(([field, config]) => config.required && !response[field])
-        .map(([field]) => field);
+        // Validate required fields
+        const missingRequired = Object.entries(deckConfig.responseFields)
+          .filter(([field, config]) => config.required && !response[field])
+          .map(([field]) => field);
 
-      if (missingRequired.length > 0) {
-        throw new PromptError("AI response missing required fields", {
+        if (missingRequired.length === 0) {
+          return response;
+        }
+
+        this.debugLog("AI response missing required fields", {
           missingFields: missingRequired,
         });
-      }
 
-      return response;
-    } catch (error) {
-      if (error instanceof PromptError) {
-        throw error;
+        this.debugLog(
+          `Now Regenerating ... remaining attempts: ${MAX_ATTEMPTS - attempts}`,
+        );
+
+        attempts++;
+      } catch (error) {
+        if (error instanceof PromptError) {
+          throw error;
+        }
+
+        throw new AudioGenerationError("Content generation failed", {
+          messages: [(error as Error).message],
+        });
       }
-      throw new PromptError("Content generation failed", {
-        configIssues: [(error as Error).message],
-      });
     }
+
+    throw new AudioGenerationError("Content generation failed", {
+      messages: [
+        "Max attempts reached, but didn't get all of the required fields",
+      ],
+    });
   }
 
   async generateAudio(
     text: string,
     outputPath: string,
     voice: string,
+    locale = "en-US",
   ): Promise<string> {
-    const mp3 = await this.client.audio.speech.create({
-      model: this.ttsModel,
-      // biome-ignore lint/suspicious/noExplicitAny: <explanation>
-      voice: voice as any,
-      input: text,
-    });
+    let mp3Buffer: Response;
 
-    const buffer = Buffer.from(await mp3.arrayBuffer());
+    // If the tts method is set to ollama, use our own tts service: EdgeSpeechTTS
+    try {
+      this.debugLog(
+        `Generating audio with ${
+          this.ttsMethod === TtsMethod.EDGE_TTS ? "EdgeSpeechTTS" : "OpenAI"
+        } service`,
+      );
+
+      if (this.ttsMethod === TtsMethod.EDGE_TTS) {
+        // Use EdgeSpeechTTS for ollama model
+        const tts = new EdgeSpeechTTS({ locale });
+
+        mp3Buffer = await tts.create({
+          input: text,
+          options: {
+            voice: voice,
+          },
+        });
+      } else {
+        // logic for openai models
+        mp3Buffer = await this.client.audio.speech.create({
+          model: this.ttsModel,
+          // biome-ignore lint/suspicious/noExplicitAny: <explanation>
+          voice: voice as any,
+          input: text,
+        });
+      }
+    } catch (error) {
+      throw new AudioGenerationError("Audio generation failed", {
+        messages: [
+          (error as Error).message,
+          `TTS method: ${this.ttsMethod}`,
+          `TTS model: ${this.ttsModel}`,
+        ],
+      });
+    }
+
+    const buffer = Buffer.from(await mp3Buffer.arrayBuffer());
     await writeFile(outputPath, buffer);
     return outputPath;
   }

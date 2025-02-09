@@ -113,7 +113,11 @@ export function createServer(deps: ServerDependencies) {
           decks: decks,
         });
       } catch (e: unknown) {
-        res.status(500).json({ error: (e as { message?: string })?.message || "Unknown error" });
+        res
+          .status(500)
+          .json({
+            error: (e as { message?: string })?.message || "Unknown error",
+          });
       }
     }),
   );
@@ -129,7 +133,7 @@ export function createServer(deps: ServerDependencies) {
   const getCardDetails = async (req: Request, res: Response) => {
     const cardId = Number.parseInt(req.params.id, 10);
     const cards = await deps.ankiService.getCardsInfo([cardId]);
-    const card = (Array.isArray(cards) && cards.length > 0) ? cards[0] : null;
+    const card = Array.isArray(cards) && cards.length > 0 ? cards[0] : null;
 
     if (!card || card.cardId == null) {
       res.status(404).json({ error: "Card not found" });
