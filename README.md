@@ -55,7 +55,9 @@ graph TD;
 ## Prerequisite
 
 - Setup Anki with AnkiConnect locally
-- ffplayer (installed along with ffmpeg)
+- Audio playback utilities:
+  - macOS: afplay (built into macOS)
+  - Windows/Linux: ffplay (installed along with ffmpeg)
 
 ## Installation
 
@@ -65,10 +67,17 @@ graph TD;
 npm install -g gakuon
 ```
 
-### Install ffmpeg (OSX/Linux)
+### Install ffmpeg (Windows/Linux)
 
 ```
+# Linux
+sudo apt-get install ffmpeg
+
+# macOS (only needed for compatibility with other tools)
 brew install ffmpeg
+
+# Windows
+# Download from https://ffmpeg.org/download.html
 ```
 
 ## Usage

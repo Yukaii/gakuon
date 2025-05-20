@@ -10,7 +10,10 @@ export class AudioPlayer {
   private currentProcess: ChildProcess | null = null;
   private isPlaying = false;
   private isStopping = false;
-  private ffplay = process.platform === "win32" ? "ffplay.exe" : "ffplay";
+  private audioPlayer = 
+    process.platform === "win32" ? "ffplay.exe" : 
+    process.platform === "darwin" ? "afplay" : 
+    "ffplay";
   private tmpFiles: string[] = [];
 
   constructor(
@@ -64,14 +67,19 @@ export class AudioPlayer {
       this.isPlaying = true;
 
       await new Promise<void>((resolve, reject) => {
-        const proc = spawn(this.ffplay, [
-          "-nodisp",
-          "-autoexit",
-          "-hide_banner",
-          "-loglevel",
-          "quiet",
-          filepath,
-        ]);
+        // Different arguments based on platform
+        const args = process.platform === "darwin" 
+          ? [filepath] // afplay just needs the filepath
+          : [
+              "-nodisp",
+              "-autoexit",
+              "-hide_banner",
+              "-loglevel",
+              "quiet",
+              filepath,
+            ];
+            
+        const proc = spawn(this.audioPlayer, args);
 
         this.currentProcess = proc;
 
@@ -80,7 +88,7 @@ export class AudioPlayer {
             if (this.isStopping) {
               this.isStopping = false;
             } else {
-              reject(new Error(`ffplay exited with code ${code}`));
+              reject(new Error(`${this.audioPlayer} exited with code ${code}`));
             }
           } else {
             resolve();

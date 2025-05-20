@@ -22,7 +22,7 @@
     "lint:write": "biome lint --write ./src"
   },
   "devDependencies": {
-    "@biomejs/biome": "1.9.4",
+    "@biomejs/biome": "^1.9.4",
     "@phosphor-icons/react": "^2.1.7",
     "@types/bun": "latest",
     "@types/cors": "^2.8.17",
