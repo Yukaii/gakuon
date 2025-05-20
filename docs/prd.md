@@ -51,6 +51,7 @@
    - Text-to-Speech pipeline
    - Audio playback controls
    - Deck selection and management
+   - External content links (lyrics, videos)
 
 2. **Component System**:
    - Server component

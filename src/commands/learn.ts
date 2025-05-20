@@ -6,6 +6,7 @@ import { KeyAction, KeyboardHandler } from "../utils/keyboard";
 import type { DynamicContent, DeckConfig, Card } from "../config/types";
 import { ContentManager } from "../services/content-manager";
 import Enquirer from "enquirer";
+import { openInBrowser, isValidUrl } from "../utils/external-links";
 
 interface AudioGeneration {
   content: DynamicContent;
@@ -202,9 +203,17 @@ export async function learn(options: LearnOptions = {}) {
           if (value === undefined || value === null) {
             debug(`Missing content for field: ${field}`);
           }
+          
+          let displayValue = value || "[Missing Content]";
+          // Add indicator for external link fields
+          if (config.externalLink && value) {
+            const linkType = config.linkType || "link";
+            displayValue = `${value} [${linkType} - Press O to open]`;
+          }
+          
           console.log(
             `${index + 1}. ${config.description}:`,
-            value || "[Missing Content]",
+            displayValue,
           );
         },
       );
@@ -288,9 +297,15 @@ export async function learn(options: LearnOptions = {}) {
           console.log("\nNewly Generated content:");
           Object.entries(deckConfig.responseFields).forEach(
             ([field, config], index) => {
+              let displayValue = newAudio.content[field];
+              // Add indicator for external link fields
+              if (config.externalLink && displayValue) {
+                const linkType = config.linkType || "link";
+                displayValue = `${displayValue} [${linkType} - Press O to open]`;
+              }
               console.log(
                 `${index + 1}. ${config.description}:`,
-                newAudio.content[field],
+                displayValue,
               );
             },
           );
@@ -304,6 +319,92 @@ export async function learn(options: LearnOptions = {}) {
               const fieldConfig = deckConfig.responseFields[fieldName];
               console.log(`\nPlaying ${fieldConfig.description}...`);
               await audioPlayer.play(audioFile);
+            }
+          }
+        }
+      });
+
+      // Handle opening external links
+      keyboard.on(KeyAction.OPEN_LINK, async () => {
+        if (!isCardComplete) {
+          const externalLinkFields = Object.entries(deckConfig.responseFields)
+            .filter(([_, config]) => config.externalLink)
+            .map(([field]) => field);
+
+          if (externalLinkFields.length === 0) {
+            console.log("\nNo external links available for this card.");
+            return;
+          }
+
+          if (externalLinkFields.length === 1) {
+            const field = externalLinkFields[0];
+            const url = content[field];
+            if (url && isValidUrl(url)) {
+              console.log(`\nOpening external link: ${url}`);
+              try {
+                await openInBrowser(url);
+              } catch (error) {
+                console.error("Failed to open link:", error);
+              }
+            } else {
+              console.log("\nInvalid or missing external link.");
+            }
+          } else {
+            // If multiple link fields, ask which one to open
+            console.log("\nMultiple links available. Choose one to open:");
+            externalLinkFields.forEach((field, index) => {
+              const config = deckConfig.responseFields[field];
+              console.log(`${index + 1}: ${config.description}`);
+            });
+            
+            // Simple selection via keyboard (1-9)
+            const selection = await new Promise<number | null>(resolve => {
+              const originalHandler = process.stdin.listeners("data")[0];
+              process.stdin.removeAllListeners("data");
+              
+              const selectionHandler = (data: Buffer) => {
+                const key = data.toString();
+                const index = parseInt(key, 10) - 1;
+                
+                if (index >= 0 && index < externalLinkFields.length) {
+                  process.stdin.removeListener("data", selectionHandler);
+                  process.stdin.on("data", originalHandler);
+                  resolve(index);
+                }
+                
+                // Allow cancelling with Escape or Ctrl+C
+                if (key === "\u001b" || key === "\u0003") {
+                  process.stdin.removeListener("data", selectionHandler);
+                  process.stdin.on("data", originalHandler);
+                  resolve(null);
+                }
+              };
+              
+              process.stdin.on("data", selectionHandler);
+              
+              // Timeout after 5 seconds
+              setTimeout(() => {
+                process.stdin.removeListener("data", selectionHandler);
+                process.stdin.on("data", originalHandler);
+                resolve(null);
+              }, 5000);
+            });
+            
+            if (selection !== null) {
+              const field = externalLinkFields[selection];
+              const url = content[field];
+              if (url && isValidUrl(url)) {
+                console.log(`\nOpening external link: ${url}`);
+                try {
+                  await openInBrowser(url);
+                } catch (error) {
+                  console.error("Failed to open link:", error);
+                }
+              } else {
+                console.log("\nInvalid or missing external link.");
+              }
+            } else {
+              console.log("\nLink selection cancelled.");
             }
           }
         }

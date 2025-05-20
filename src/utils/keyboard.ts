@@ -12,6 +12,7 @@ export enum KeyAction {
   RATE_3 = "RATE_3",
   RATE_4 = "RATE_4",
   REGENERATE = "REGENERATE",
+  OPEN_LINK = "OPEN_LINK",
 }
 
 export class KeyboardHandler extends EventEmitter {
@@ -57,6 +58,9 @@ export class KeyboardHandler extends EventEmitter {
       case "g":
         this.emit(KeyAction.REGENERATE);
         break;
+      case "o":
+        this.emit(KeyAction.OPEN_LINK);
+        break;
       case "1":
         this.emit(KeyAction.RATE_1);
         break;
@@ -98,6 +102,7 @@ export class KeyboardHandler extends EventEmitter {
     console.log("S: Stop playback");
     console.log("N: Next card");
     console.log("P: Previous card");
+    console.log("O: Open external link (if available)");
     console.log("1-4: Rate card");
     console.log("Q: Quit session");
     console.log("G: Regenerate content");

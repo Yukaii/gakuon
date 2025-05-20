@@ -4,6 +4,8 @@ export interface ResponseField {
   description: string;
   required: boolean;
   audio?: boolean; // Whether this field should be converted to audio
+  externalLink?: boolean; // Whether this field contains a URL to external content
+  linkType?: "lyrics" | "youtube"; // Type of external link (lyrics or YouTube video)
 }
 
 export type DeckConfig = z.infer<typeof DeckConfigSchema>;

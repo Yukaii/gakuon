@@ -249,6 +249,16 @@ explanation_en.locale = "en-US"
 usage_notes.description = "Additional usage notes"
 usage_notes.required = false
 usage_notes.audio = false
+
+song_link.description = "Link to song or lyrics"
+song_link.required = false
+song_link.externalLink = true
+song_link.linkType = "lyrics"
+
+video_link.description = "YouTube video link"
+video_link.required = false
+video_link.externalLink = true
+video_link.linkType = "youtube"
 ```
 
 ## References
