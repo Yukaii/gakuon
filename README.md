@@ -179,6 +179,7 @@ GAKUON_DEFAULT_DECK="MyDeck"               # Default deck name
 
 GAKUON_OPENAI_CHAT_MODEL="gpt-4o" # Model for chat completions
 GAKUON_OPENAI_INIT_MODEL="gpt-4o" # Model for initialization
+GAKUON_OPENAI_TEMPERATURE="0.7"   # Temperature for chat completions (0.0-2.0)
 
 # Card Order Settings
 GAKUON_QUEUE_ORDER="learning_review_new"   # Options: learning_review_new, review_learning_new, new_learning_review, mixed
@@ -206,6 +207,7 @@ baseUrl = "https://api.openai.com/v1"
 chatModel = "gpt-4o"
 initModel = "gpt-4o"
 ttsModel = "tts-1"
+temperature = 0.7
 
 [global.cardOrder]
 queueOrder = "learning_review_new"

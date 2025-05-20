@@ -22,6 +22,7 @@ export class OpenAIService {
     private ttsModel = "tts-1",
     public ttsMethod = TtsMethod.OPENAI,
     private debug = false,
+    private temperature = 0.7,
   ) {
     this.client = new OpenAI({
       apiKey,
@@ -123,6 +124,7 @@ ${Object.entries(deckConfig.responseFields)
           model: this.chatModel,
           messages: [{ role: "user", content: fullPrompt }],
           response_format: { type: "json_object" },
+          temperature: this.temperature,
         });
 
         const response = JSON.parse(

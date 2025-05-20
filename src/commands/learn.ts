@@ -68,6 +68,7 @@ export async function learn(options: LearnOptions = {}) {
     config.global.openai.ttsModel,
     config.global.ttsMethod,
     options.debug,
+    config.global.openai.temperature,
   );
   const contentManager = new ContentManager(
     ankiService,

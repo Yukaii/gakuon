@@ -28,6 +28,7 @@ export async function serve(options: ServeOptions = {}) {
     config.global.openai.ttsModel,
     config.global.ttsMethod,
     debug,
+    config.global.openai.temperature,
   );
   const contentManager = new ContentManager(
     ankiService,

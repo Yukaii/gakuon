@@ -102,6 +102,7 @@ export const OpenAIConfigSchema = z.object({
   chatModel: z.string(),
   initModel: z.string(),
   ttsModel: z.string(),
+  temperature: z.number().optional().default(0.7),
 });
 
 export const CardOrderSchema = z.object({
