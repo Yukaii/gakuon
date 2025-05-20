@@ -175,3 +175,6 @@ dist
 .DS_Store
 
 deployment/data/
+
+# Bun and npm specific files
+package-lock.json
