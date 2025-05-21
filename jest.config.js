@@ -6,4 +6,5 @@ export default {
   },
   testMatch: ["**/*.test.[jt]s?(x)"],
   testPathIgnorePatterns: ["<rootDir>/tests/integration/"],
+  setupFiles: ["<rootDir>/jest.setup.js"],
 };
