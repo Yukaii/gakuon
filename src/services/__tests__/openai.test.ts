@@ -3,20 +3,21 @@ import { Card, DeckConfig, PromptError, AudioGenerationError, TtsMethod } from '
 
 // Mock OpenAI module
 jest.mock('openai', () => {
-  return {
-    default: jest.fn().mockImplementation(() => ({
-      chat: {
-        completions: {
-          create: jest.fn(),
-        },
+  // Create a mock constructor
+  const mockOpenAIConstructor = jest.fn().mockImplementation(() => ({
+    chat: {
+      completions: {
+        create: jest.fn(),
       },
-      audio: {
-        speech: {
-          create: jest.fn(),
-        },
+    },
+    audio: {
+      speech: {
+        create: jest.fn(),
       },
-    })),
-  };
+    },
+  }));
+  
+  return mockOpenAIConstructor;
 });
 
 // Mock fs/promises to avoid actual file writes

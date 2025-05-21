@@ -1,7 +1,7 @@
 import { Buffer } from "node:buffer";
-import { existsSync, readFileSync, writeFileSync } from "node:fs";
+import { existsSync, readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { homedir } from "node:os";
-import { join } from "node:path";
+import { join, dirname } from "node:path";
 import { type JsonMap, parse, stringify } from "@iarna/toml";
 import { ZodError } from "zod";
 import { interpolateEnvVars } from "../utils/path";
@@ -242,6 +242,12 @@ export async function saveConfig(config: GakuonConfig): Promise<void> {
   const configPath = join(homedir(), ".gakuon", "config.toml");
 
   try {
+    // Create directory if it doesn't exist
+    const dirPath = dirname(configPath);
+    if (!existsSync(dirPath)) {
+      mkdirSync(dirPath, { recursive: true });
+    }
+    
     const processedConfig = reverseProcessConfigValues(config);
     const tomlContent = stringify(processedConfig as JsonMap);
 
