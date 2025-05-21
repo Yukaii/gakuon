@@ -91,11 +91,6 @@ describe('Config Loader', () => {
     process.env = originalEnv;
   });
   
-  afterAll(() => {
-    // Restore process.env to its original state
-    process.env = originalEnv;
-  });
-  
   describe('loadConfig', () => {
     it('should load config from file when BASE64_GAKUON_CONFIG is not set', () => {
       const result = loadConfig();

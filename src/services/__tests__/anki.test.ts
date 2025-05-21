@@ -1,5 +1,5 @@
 import { AnkiService } from '../anki';
-import { Card, CardQueueType, NewCardGatherOrder, QueueOrder, ReviewSortOrder } from '../../config/types';
+import { type Card, CardQueueType, NewCardGatherOrder, QueueOrder, ReviewSortOrder } from '../../config/types';
 import { delay } from '../../utils/time';
 
 // Mock the fetch function
@@ -27,8 +27,11 @@ describe('AnkiService', () => {
   describe('constructor', () => {
     it('should initialize with the provided parameters', () => {
       expect(ankiService).toBeInstanceOf(AnkiService);
-      expect(ankiService['host']).toBe(mockHost);
-      expect(ankiService['debug']).toBe(true);
+      // Access private properties using any type casting
+      // biome-ignore lint/suspicious/noExplicitAny: accessing private properties in tests
+      expect((ankiService as any).host).toBe(mockHost);
+      // biome-ignore lint/suspicious/noExplicitAny: accessing private properties in tests
+      expect((ankiService as any).debug).toBe(true);
     });
   });
   
@@ -39,7 +42,8 @@ describe('AnkiService', () => {
         json: jest.fn().mockResolvedValue({ result: mockResult }),
       });
       
-      const result = await ankiService['request']('test', { param: 'value' });
+      // biome-ignore lint/suspicious/noExplicitAny: accessing private methods in tests
+      const result = await (ankiService as any).request('test', { param: 'value' });
       
       expect(global.fetch).toHaveBeenCalledWith(
         mockHost,
@@ -63,7 +67,8 @@ describe('AnkiService', () => {
         }),
       });
       
-      await expect(ankiService['request']('test')).rejects.toThrow('API error');
+      // biome-ignore lint/suspicious/noExplicitAny: accessing private methods in tests
+      await expect((ankiService as any).request('test')).rejects.toThrow('API error');
     });
   });
   

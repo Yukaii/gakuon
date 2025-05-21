@@ -1,5 +1,5 @@
 import { OpenAIService } from '../openai';
-import { Card, DeckConfig, PromptError, AudioGenerationError, TtsMethod } from '../../config/types';
+import { type Card, type DeckConfig, PromptError, AudioGenerationError, TtsMethod } from '../../config/types';
 
 // Mock OpenAI module
 jest.mock('openai', () => {
@@ -46,10 +46,14 @@ describe('OpenAIService', () => {
   describe('constructor', () => {
     it('should initialize with the provided parameters', () => {
       expect(openaiService).toBeInstanceOf(OpenAIService);
-      expect(openaiService['apiKey']).toBe(mockApiKey);
-      expect(openaiService['baseUrl']).toBe('https://test.openai.api');
-      expect(openaiService['chatModel']).toBe('gpt-test');
-      expect(openaiService['ttsModel']).toBe('tts-test');
+      // biome-ignore lint/suspicious/noExplicitAny: accessing private properties in tests
+      expect((openaiService as any).apiKey).toBe(mockApiKey);
+      // biome-ignore lint/suspicious/noExplicitAny: accessing private properties in tests
+      expect((openaiService as any).baseUrl).toBe('https://test.openai.api');
+      // biome-ignore lint/suspicious/noExplicitAny: accessing private properties in tests
+      expect((openaiService as any).chatModel).toBe('gpt-test');
+      // biome-ignore lint/suspicious/noExplicitAny: accessing private properties in tests
+      expect((openaiService as any).ttsModel).toBe('tts-test');
     });
   });
   
@@ -88,7 +92,8 @@ describe('OpenAIService', () => {
       };
       
       // Should not throw an error
-      expect(() => openaiService['validateFields'](card, deckConfig)).not.toThrow();
+      // biome-ignore lint/suspicious/noExplicitAny: accessing private methods in tests
+      expect(() => (openaiService as any).validateFields(card, deckConfig)).not.toThrow();
     });
     
     it('should throw an error when fields are missing from the card', () => {
@@ -124,7 +129,8 @@ describe('OpenAIService', () => {
         },
       };
       
-      expect(() => openaiService['validateFields'](card, deckConfig)).toThrow(PromptError);
+      // biome-ignore lint/suspicious/noExplicitAny: accessing private methods in tests
+      expect(() => (openaiService as any).validateFields(card, deckConfig)).toThrow(PromptError);
     });
     
     it('should throw an error when field mappings are invalid', () => {
@@ -160,7 +166,8 @@ describe('OpenAIService', () => {
         },
       };
       
-      expect(() => openaiService['validateFields'](card, deckConfig)).toThrow(PromptError);
+      // biome-ignore lint/suspicious/noExplicitAny: accessing private methods in tests
+      expect(() => (openaiService as any).validateFields(card, deckConfig)).toThrow(PromptError);
     });
   });
   
