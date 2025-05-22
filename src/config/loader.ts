@@ -26,6 +26,7 @@ export const DEFAULT_CONFIG: GakuonConfig = {
       chatModel: "gpt-4o",
       initModel: "gpt-4o",
       ttsModel: "tts-1",
+      temperature: 0.7,
     },
     cardOrder: {
       queueOrder: QueueOrder.LEARNING_REVIEW_NEW,
@@ -49,6 +50,7 @@ const ENV_VAR_MAPPINGS = {
   "global.openai.chatModel": "GAKUON_OPENAI_CHAT_MODEL",
   "global.openai.initModel": "GAKUON_OPENAI_INIT_MODEL",
   "global.openai.ttsModel": "GAKUON_OPENAI_TTS_MODEL",
+  "global.openai.temperature": "GAKUON_OPENAI_TEMPERATURE",
 };
 
 // Keys that should undergo environment variable interpolation
@@ -109,6 +111,7 @@ function processRawConfig(rawConfig: unknown): GakuonConfig {
     chatModel: DEFAULT_CONFIG.global.openai.chatModel,
     initModel: DEFAULT_CONFIG.global.openai.initModel,
     ttsModel: DEFAULT_CONFIG.global.openai.ttsModel,
+    temperature: DEFAULT_CONFIG.global.openai.temperature,
     ...(processed.global?.openai || {}),
   };
 

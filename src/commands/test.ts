@@ -27,6 +27,7 @@ export async function test(options: TestOptions = {}) {
       config.global.openai.ttsModel,
       config.global.ttsMethod,
       debug,
+      config.global.openai.temperature,
     );
 
     // Get available decks
